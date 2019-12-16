@@ -1,6 +1,5 @@
 import sys
 import lexical_analyzer as lexi
-import keyword_constants as kc
 import time
 import os
 
@@ -20,6 +19,9 @@ class Integer():
 
 tokenSet = []
 
+def getCP(count):
+    return tokenSet[count.value][lexi.CLASS_PART]
+
 
 def main():
     count = Integer()
@@ -28,13 +30,13 @@ def main():
         global tokenSet
         tokenSet = lexi.lexicalAnalyzer(filePath)
     
-        
-        if start(count):
-            if tokenSet[count.value][lexi.CLASS_PART] == "$":
-                print ("Successful Parsed")
-                time.sleep(1)
-                os.system('cls')
-                print(r'''
+        if getCP(count) == lexi.CLASS or getCP(count) == lexi.INTERFACE or getCP(count) == lexi.IMPORT:
+            if start(count):
+                if tokenSet[count.value][lexi.CLASS_PART] == "$":
+                    print ("Successful Parsed")
+                    time.sleep(1)
+                    os.system('cls')
+                    print(r'''
          .* *.               `o`o`
          *. .*              o`o`o`o      ^,^,^
            * \               `o`o`     ^,^,^,^,^
