@@ -1,0 +1,26 @@
+import A;
+
+interface myInterface(){
+    
+}
+
+
+
+class Main(){
+
+    public static int a = 5;
+
+    public int myMethod(MyClass a){
+
+        int b = 9;
+
+
+    }
+    
+    public static int a = 5;
+
+    public int myMethod(MyClass a){
+
+    
+    }
+}
