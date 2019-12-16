@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["code.kazim_sami_shaheer"]
+            "args": ["code.sks"]
         },
         {
             "name": "Python: Remote Attach",

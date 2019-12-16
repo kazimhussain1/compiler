@@ -223,7 +223,7 @@ def classBodyStLfTwo(count):
 
 #changed
 def classStRecursive(count):
-    if getCP(count) == lexi.CLASS or getCP(count) == "$" or getCP(count) == lexi.INTERFACE:
+    if getCP(count) == lexi.CLASS:
         if classSt(count):
             if classStRecursive(count):
                 return True
@@ -233,7 +233,7 @@ def classStRecursive(count):
             if classStRecursive(count):
                 return True
             
-    elif tokenSet[count.value][lexi.CLASS_PART] ==  lexi.CLASS or tokenSet[count.value][lexi.CLASS_PART] ==  lexi.INTERFACE:
+    elif getCP(count) ==  lexi.CLASS or getCP(count) ==  lexi.INTERFACE or getCP(count) == lexi.END_MARKER:
             return True
     
     return False
@@ -261,7 +261,7 @@ def staticOptional(count):
     if tokenSet[count.value][lexi.CLASS_PART] == "STATIC":
         count+=1
         return True
-    elif tokenSet[count.value][lexi.CLASS_PART] == "DATA_TYPE" or "IDENTIFIER":
+    elif tokenSet[count.value][lexi.CLASS_PART] == "DATA_TYPE" or getCP(count) == "IDENTIFIER":
         return True
     return False
 
@@ -500,7 +500,7 @@ def condition_dash(count):
         if ae(count):
             if condition_dash(count):
                 return True
-    elif tokenSet[count.value][lexi.CLASS_PART] ==  lexi.SEPARATOR_OP or "END_OF_STATEMENT" or "ROUND_BRACKET_CLOSE" or "IDENTIFIER" or "CURLY_BRACKET_CLOSE" or "DATA_TYPE" or "WHILE" or "IF" or "FOR" or "FOR_EACH" or "SEND":
+    elif tokenSet[count.value][lexi.CLASS_PART] ==  lexi.SEPARATOR_OP or getCP(count) == "END_OF_STATEMENT" or getCP(count) == "ROUND_BRACKET_CLOSE" or getCP(count) == "IDENTIFIER" or getCP(count) == "CURLY_BRACKET_CLOSE" or getCP(count) == "DATA_TYPE" or getCP(count) == "WHILE" or getCP(count) == "IF" or getCP(count) == "FOR" or getCP(count) == "FOR_EACH" or getCP(count) == "SEND":
         return True
     return False
 
@@ -534,7 +534,7 @@ def e_Dash(count):
         if t(count):
             if e_Dash(condition):
                 return True
-    elif tokenSet[count.value][lexi.CLASS_PART] ==  lexi.SEPARATOR_OP or "END_OF_STATEMENT" or "ROUND_BRACKET_CLOSE" or "IDENTIFIER" or "CURLY_BRACKET_CLOSE" or "DATA_TYPE" or "WHILE" or "IF" or "FOR" or "FOR_EACH" or "SEND":
+    elif tokenSet[count.value][lexi.CLASS_PART] ==  lexi.SEPARATOR_OP or getCP(count) == "END_OF_STATEMENT" or getCP(count) == "ROUND_BRACKET_CLOSE" or getCP(count) == "IDENTIFIER" or getCP(count) == "CURLY_BRACKET_CLOSE" or getCP(count) == "DATA_TYPE" or getCP(count) == "WHILE" or getCP(count) == "IF" or getCP(count) == "FOR" or getCP(count) == "FOR_EACH" or getCP(count) == "SEND":
         return True
     return False
 
@@ -543,7 +543,7 @@ def t_Dash(count):
         if f(count):
             if t_Dash(count):
                 return True
-    elif tokenSet[count.value][lexi.CLASS_PART] == "PM" or  lexi.SEPARATOR_OP or "END_OF_STATEMENT" or "ROUND_BRACKET_CLOSE" or "IDENTIFIER" or "CURLY_BRACKET_CLOSE" or "DATA_TYPE" or "WHILE" or "IF" or "FOR" or "FOR_EACH" or "SEND":
+    elif tokenSet[count.value][lexi.CLASS_PART] == "PM" or getCP(count) ==  lexi.SEPARATOR_OP or getCP(count) == "END_OF_STATEMENT" or getCP(count) == "ROUND_BRACKET_CLOSE" or getCP(count) == "IDENTIFIER" or getCP(count) == "CURLY_BRACKET_CLOSE" or getCP(count) == "DATA_TYPE" or getCP(count) == "WHILE" or getCP(count) == "IF" or getCP(count) == "FOR" or getCP(count) == "FOR_EACH" or getCP(count) == "SEND":
         return True
     return False
 
@@ -589,7 +589,7 @@ def f_Lf(count):
         if argumentOrNull(count):
             if objFunctionArrayInvocationRecursive(count):
                 return True
-    elif tokenSet[count.value][lexi.CLASS_PART] == "PM" or  lexi.SEPARATOR_OP or "END_OF_STATEMENT" or "ROUND_BRACKET_CLOSE" or "IDENTIFIER" or "CURLY_BRACKET_CLOSE" or "DATA_TYPE" or "WHILE" or "IF" or "FOR" or "FOR_EACH" or "SEND":
+    elif tokenSet[count.value][lexi.CLASS_PART] == "PM" or getCP(count) ==  lexi.SEPARATOR_OP or getCP(count) == "END_OF_STATEMENT" or getCP(count) == "ROUND_BRACKET_CLOSE" or getCP(count) == "IDENTIFIER" or getCP(count) == "CURLY_BRACKET_CLOSE" or getCP(count) == "DATA_TYPE" or getCP(count) == "WHILE" or getCP(count) == "IF" or getCP(count) == "FOR" or getCP(count) == "FOR_EACH" or getCP(count) == "SEND":
         return True
     return False
 
@@ -699,7 +699,7 @@ def argumentOrNull(count):
     elif getCP(count) == lexi.SQUARE_BRACKET_OPEN:
         if arrayCall(count):
             return True
-    elif tokenSet[count.value][lexi.CLASS_PART] == "METHOD_OP" or "END_OF_STATEMENT" or lexi.SEPARATOR_OP or "ROUND_BRACKET_CLOSE" or "IDENTIFIER" or "CURLY_BRACKET_CLOSE" or "DATA_TYPE" or "WHILE" or "IF" or "FOR" or "FOR_EACH" or "SEND":
+    elif tokenSet[count.value][lexi.CLASS_PART] == "METHOD_OP" or getCP(count) == "END_OF_STATEMENT" or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == "ROUND_BRACKET_CLOSE" or getCP(count) == "IDENTIFIER" or getCP(count) == "CURLY_BRACKET_CLOSE" or getCP(count) == "DATA_TYPE" or getCP(count) == "WHILE" or getCP(count) == "IF" or getCP(count) == "FOR" or getCP(count) == "FOR_EACH" or getCP(count) == "SEND":
         return True
     return False
 
@@ -733,7 +733,7 @@ def arrayCall2d(count):
         if e(count):
             if tokenSet[count.value][lexi.CLASS_PART] == "SQUARE_BRACKET_CLOSE":
                 count+=1
-    elif tokenSet[count.value][lexi.CLASS_PART] == "METHOD_OP" or "AS_OP" or "END_OF_STATEMENT":
+    elif tokenSet[count.value][lexi.CLASS_PART] == "METHOD_OP" or getCP(count) == "AS_OP" or getCP(count) == "END_OF_STATEMENT":
         return True
     return False
 
@@ -975,7 +975,7 @@ def arrayBody2d(count):
                 count+=1
                 if arraySeparator2d(count):
                     return True
-    elif tokenSet[count.value][lexi.CLASS_PART] == "CURLY_BRACKET_CLOSE" or  lexi.SEPARATOR_OP:
+    elif tokenSet[count.value][lexi.CLASS_PART] == "CURLY_BRACKET_CLOSE" or getCP(count) == lexi.SEPARATOR_OP:
         return True
     return False
 
@@ -1059,7 +1059,7 @@ def sstAllFunctions(count):
                     if tokenSet[count.value][lexi.CLASS_PART] == "END_OF_STATEMENT":
                         count+=1
                         return True
-    elif tokenSet[count.value][lexi.CLASS_PART] == "END_OF_STATEMENT" or lexi.SEPARATOR_OP or "ROUND_BRACKET_CLOSE" or "IDENTIFIER" or "CURLY_BRACKET_CLOSE" or "DATA_TYPE" or "WHILE" or "IF" or "FOR" or "FOR_EACH" or "SEND":
+    elif tokenSet[count.value][lexi.CLASS_PART] == "END_OF_STATEMENT" or lexi.SEPARATOR_OP or getCP(count) == "ROUND_BRACKET_CLOSE" or getCP(count) == "IDENTIFIER" or getCP(count) == "CURLY_BRACKET_CLOSE" or getCP(count) == "DATA_TYPE" or getCP(count) == "WHILE" or getCP(count) == "IF" or getCP(count) == "FOR" or getCP(count) == "FOR_EACH" or getCP(count) == "SEND":
         return True
     return False
 
@@ -1129,8 +1129,6 @@ def list_(count):
 
 
 
-def objMethodAttributeRecursive(count):pass
-
 
 def ROPE_Dash(count):
     if tokenSet[count.value][lexi.CLASS_PART] == "RELATIONAL_OP":
@@ -1138,7 +1136,7 @@ def ROPE_Dash(count):
         if e(count):
             if ROPE_Dash(count):
                 return True
-    elif tokenSet[count.value][lexi.CLASS_PART] ==  lexi.SEPARATOR_OP or "END_OF_STATEMENT" or "ROUND_BRACKET_CLOSE" or "IDENTIFIER" or "CURLY_BRACKET_CLOSE" or "DATA_TYPE" or "WHILE" or "IF" or "FOR" or "FOR_EACH" or "SEND":
+    elif tokenSet[count.value][lexi.CLASS_PART] ==  lexi.SEPARATOR_OP or getCP(count) == "END_OF_STATEMENT" or getCP(count) == "ROUND_BRACKET_CLOSE" or getCP(count) == "IDENTIFIER" or getCP(count) == "CURLY_BRACKET_CLOSE" or getCP(count) == "DATA_TYPE" or getCP(count) == "WHILE" or getCP(count) == "IF" or getCP(count) == "FOR" or getCP(count) == "FOR_EACH" or getCP(count) == "SEND":
         return True
     return False
 
@@ -1149,7 +1147,7 @@ def ae_dash(count):
         if ROPE(count):
           if ae_dash(count):
             return True
-    elif tokenSet[count.value][lexi.CLASS_PART] ==  lexi.SEPARATOR_OP or "END_OF_STATEMENT" or "ROUND_BRACKET_CLOSE" or "IDENTIFIER" or "CURLY_BRACKET_CLOSE" or "DATA_TYPE" or "WHILE" or "IF" or "FOR" or "FOR_EACH" or "SEND": 
+    elif tokenSet[count.value][lexi.CLASS_PART] ==  lexi.SEPARATOR_OP or getCP(count) == "END_OF_STATEMENT" or getCP(count) == "ROUND_BRACKET_CLOSE" or getCP(count) == "IDENTIFIER" or getCP(count) == "CURLY_BRACKET_CLOSE" or getCP(count) == "DATA_TYPE" or getCP(count) == "WHILE" or getCP(count) == "IF" or getCP(count) == "FOR" or getCP(count) == "FOR_EACH" or getCP(count) == "SEND": 
         return True
     return False
 

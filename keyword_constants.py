@@ -34,7 +34,7 @@ MDM = "MDM"
 RELATIONAL_OP = "RELATIONAL_OP"
 BOOLEAN_OP = "BOOLEAN_OP"
 UNI_BOOLEAN_OP = "UNI_BOOLEAN_OP"
-MAIN_FUNC = "MAIN_FUNC"
+END_MARKER = "END_MARKER"
 
 ###################################################
 

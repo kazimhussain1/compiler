@@ -1,8 +1,5 @@
 import A;
 
-interface myInterface(){
-    
-}
 
 
 
@@ -21,6 +18,9 @@ class Main(){
 
     public int myMethod(MyClass a){
 
-    
+    while(a.b.c.d()){
+
     }
+    
+}
 }

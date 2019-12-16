@@ -43,7 +43,6 @@ keywords_dict = {
     RELATIONAL_OP : ["<", ">", "<=", ">=", "!=", "=="],
     BOOLEAN_OP : ["AND", "OR"],
     UNI_BOOLEAN_OP : ["NOT"],
-    MAIN_FUNC : ["main"] 
 }
 
 keywords_list = [item for subList in keywords_dict.values() for item in subList]
@@ -202,7 +201,8 @@ def lexicalAnalyzer(path):
                                 charIndex+=1
                                 continue
                             except Exception as e:
-                                print(e)
+                                #print(e)
+                                pass
 
                         if len(temp) > 0:
                             generateToken(temp, lineNumber, outputFile)
@@ -224,7 +224,7 @@ def lexicalAnalyzer(path):
                 charIndex+=1
 
         tokenSet.append({
-            CLASS_PART  : "$",
+            CLASS_PART  : END_MARKER,
             VALUE_PART  : "$",
             LINE_NUMBER : lineNumber
         })
