@@ -170,6 +170,7 @@ def methodAttrOrCons(count):
             if classBodyStLf(count):
                 return True
     elif getCP(count) == lexi.IDENTIFIER:
+        count +=1
         if constructorSt(count):
             if classBodySt(count):
                 return True
@@ -363,23 +364,35 @@ def decOrObjDec(count):
 def dec(count):
     if tokenSet[count.value][lexi.CLASS_PART] == "DATA_TYPE":
         count+=1
-        if tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
-            count+=1
-            if init(count):
-                if list_(count):
-                    if tokenSet[count.value][lexi.CLASS_PART] == "END_OF_STATEMENT":
-                        count+=1
-                        return True
+        if arrayDec(count):
+            if getCP(count) == lexi.IDENTIFIER:
+                if init(count):
+                    if list_(count):
+                        if getCP(count) == lexi.END_OF_STATEMENT:
+                            return True
     return False
+
+        
 
 def init(count):
     if tokenSet[count.value][lexi.CLASS_PART] == "AS_OP":
         count+=1
-        if condition(count):
+        if decOpt(count):
             return True
-    elif tokenSet[count.value][lexi.CLASS_PART] ==  lexi.SEPARATOR_OP or "END_OF_STATMENT":
+    elif getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.END_OF_STATEMENT:
         return True
     return False
+
+def decOpt(count):
+    if getCP(count) == lexi.ROUND_BRACKET_OPEN or getCP(count) == lexi.UNI_BOOLEAN_OP or getCP(count) == lexi.IDENTIFIER or getCP(count) == lexi.INTEGER_CONST or getCP(count) == lexi.FLOAT_CONST or getCP(count) == lexi.STRING_CONST or getCP(count) == lexi.BOOLEAN_CONSTANTS or getCP(count) == lexi.END_OF_STATEMENT:
+        if condition(count):
+            return True
+    elif getCP(count) == lexi.CURLY_BRACKET_OPEN:
+        count +=1
+        if arrayBody(count):
+            return True
+    return False
+    
 
 def  initIdConst(count):
     if tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
@@ -412,14 +425,18 @@ def const(count):
 def objectDec(count):
     if tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
         count+=1
-        if tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
-            count+=1
-            if objectInit(count):
-                if objectList(count):
-                    if tokenSet[count.value][lexi.CLASS_PART] == "END_OF_STATEMENT":
-                        count+=1
-                        return True
+        if arrayDec(count):
+            if getCP(count) == lexi.IDENTIFIER:
+                count +=1
+                if objectInit(count):
+                    if objectList(count):
+                        if getCP(count) == lexi.END_OF_STATEMENT:
+                            count +=1
+                            return True
     return False
+
+
+
 
 #CHANGED
 def objectInit(count):
@@ -436,8 +453,9 @@ def objectInit(count):
 def lfObjectInit(count):
     if tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
         count+=1
-        if nt(count):
-            return True
+        if argumentOrNull(count):
+            if objFunctionArrayInvocationRecursive(count):
+                return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "NONE":
         count+=1
         return True
@@ -975,8 +993,6 @@ def arrayBody2d(count):
                 count+=1
                 if arraySeparator2d(count):
                     return True
-    elif tokenSet[count.value][lexi.CLASS_PART] == "CURLY_BRACKET_CLOSE" or getCP(count) == lexi.SEPARATOR_OP:
-        return True
     return False
 
 
@@ -1152,7 +1168,26 @@ def ae_dash(count):
     return False
 
 
+def arrayDec(count):
+    if getCP(count) == lexi.SQUARE_BRACKET_OPEN:
+        count+=1
+        if getCP(count) == lexi.SQUARE_BRACKET_CLOSE:
+            count+=1
+            if arrayDec2D(count):
+                return True
+    elif getCP(count) == lexi.IDENTIFIER or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.END_OF_STATEMENT:
+        return True
+    return False
 
+def arrayDec2D(count):
+    if getCP(count) == lexi.SQUARE_BRACKET_OPEN:
+        count +=1
+        if getCP(count) == lexi.SQUARE_BRACKET_CLOSE:
+            count +=1
+            return True
+    elif getCP(count) == lexi.IDENTIFIER or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.END_OF_STATEMENT:
+        return True
+    return False
 
 
 
