@@ -1,7 +1,0 @@
-{
-    "python.pythonPath": "C:\\Users\\TFS Solutions\\AppData\\Local\\Programs\\Python\\Python37\\python.exe",
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true,
-    "editor.detectIndentation": false,
-    "editor.tabSize": 4
-}
