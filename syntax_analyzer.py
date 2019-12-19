@@ -366,9 +366,11 @@ def dec(count):
         count+=1
         if arrayDec(count):
             if getCP(count) == lexi.IDENTIFIER:
+                count+=1
                 if init(count):
                     if list_(count):
                         if getCP(count) == lexi.END_OF_STATEMENT:
+                            count+=1
                             return True
     return False
 
@@ -630,15 +632,18 @@ def mainFunction(count):
 
 
 def constructorSt(count):
-    if tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
-        count+=1
-        if paramBody(count):
-            if tokenSet[count.value][lexi.CLASS_PART] == "CURLY_BRACKET_OPEN":
-                count+=1
-                if constructorMst(count):
-                    if tokenSet[count.value][lexi.CLASS_PART] == "CURLY_BRACKET_CLOSE":
-                        count+=1
-                        return True
+
+    if tokenSet[count.value][lexi.CLASS_PART] == lexi.CONSTRUCTOR:
+        count +=1
+        if tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
+            count+=1
+            if paramBody(count):
+                if tokenSet[count.value][lexi.CLASS_PART] == "CURLY_BRACKET_OPEN":
+                    count+=1
+                    if constructorMst(count):
+                        if tokenSet[count.value][lexi.CLASS_PART] == "CURLY_BRACKET_CLOSE":
+                            count+=1
+                            return True
     return False
 
 def interfaceSt(count):
@@ -661,7 +666,11 @@ def interfaceBody(count):
     return False
 
 def interfaceMst(count):
-    if interfaceStRecursive(count):
+    if getCP(count) == lexi.DATA_TYPE:
+        if interfaceMethodSt(count):
+            if interfaceMst(count):
+                return True
+    elif getCP(count)  == lexi.CURLY_BRACKET_CLOSE:
         return True
     return False
 

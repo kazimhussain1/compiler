@@ -30,6 +30,7 @@ keywords_dict = {
     INTERFACE : ["interface"],
     ABSTRACT : ["abstract"],
     ACCESS_MODIFIERS : ["private", "protected", "public"],
+    CONSTRUCTOR : ["constructor"],
     CURLY_BRACKET_OPEN : ["{"],
     CURLY_BRACKET_CLOSE : ["}"],
     ROUND_BRACKET_OPEN : ["("],
