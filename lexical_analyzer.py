@@ -42,7 +42,8 @@ keywords_dict = {
     PM : ["+", "-"],
     MDM : ["*", "/", "%"],
     RELATIONAL_OP : ["<", ">", "<=", ">=", "!=", "=="],
-    BOOLEAN_OP : ["AND", "OR"],
+    BOOLEAN_AND : ["AND", "and"],
+    BOOLEAN_OR : ["OR", "or"],
     UNI_BOOLEAN_OP : ["NOT"],
 }
 
@@ -89,7 +90,7 @@ def lexicalAnalyzer(path):
 
                         multiLineCommentString += line[charIndex]
                         if multiLineCommentString[len(multiLineCommentString)-2] == "#" and multiLineCommentString[len(multiLineCommentString)-1] == "#":
-                            generateToken(multiLineCommentString, multiLineCommentStart, outputFile)
+                            #generateToken(multiLineCommentString, multiLineCommentStart, outputFile)
                             charIndex += 1
                             insideMultiLineComment = False
                             break
@@ -118,7 +119,7 @@ def lexicalAnalyzer(path):
                         generateToken(temp, lineNumber, outputFile)
                     
                     temp = line[charIndex:len(line)-1]
-                    generateToken(temp, lineNumber, outputFile)
+                    #generateToken(temp, lineNumber, outputFile)
                     break
 
 #########################################################################################################################################################
