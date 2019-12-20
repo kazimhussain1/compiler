@@ -4,7 +4,7 @@ class Main(){
 
     public int myMethod(MyClass a){
 
-        if(b()[a]){ 
+        if(5 + 5){ 
 
         }  else{
 
