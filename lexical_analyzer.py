@@ -36,7 +36,7 @@ keywords_dict = {
     ROUND_BRACKET_OPEN : ["("],
     ROUND_BRACKET_CLOSE : [")"],
     SQUARE_BRACKET_OPEN : ["["],
-    SQUARE_BRACKET_CLOSE : [']'],
+    SQUARE_BRACKET_CLOSE : ["]"],
     AS_OP : ["="],
     COMPOUND_AS_OP : ["+=", "-=", "*=", "/=", "%="],
     PM : ["+", "-"],

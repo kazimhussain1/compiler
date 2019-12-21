@@ -724,6 +724,7 @@ def f(count, data, isRightOperand=False):
             return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
         count+=1
+        data[TYPE] = None # remove after complting flf
         if f_Lf(count, data, isRightOperand):
             return True
     return False
@@ -860,7 +861,7 @@ def argumentOrNull(count):
     elif getCP(count) == lexi.SQUARE_BRACKET_OPEN:
         if arrayCall(count):
             return True
-    elif getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
+    elif getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE or getCP(count) == lexi.COMPOUND_AS_OP:
         return True
     return False
 
@@ -876,7 +877,7 @@ def objFunctionArrayInvocationRecursive(count):
             if  argumentOrNull(count):
                 if objFunctionArrayInvocationRecursive(count):
                     return True
-    elif getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
+    elif getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE or getCP(count) == lexi.COMPOUND_AS_OP:
         return True
     return False
 
@@ -965,8 +966,7 @@ def else_(count):
 def forEachSt(count):
     if tokenSet[count.value][lexi.CLASS_PART] == "FOREACH":
         count+=1
-        if tokenSet[count.value][lexi.CLASS_PART] == "DATA_TYPE":
-            count+=1
+        if dtOrID(count):
             if tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
                 count+=1
                 if tokenSet[count.value][lexi.CLASS_PART] == "IN":
@@ -1045,8 +1045,12 @@ def forCondition(count):
 ###############CHECK FOLLOW SET
 def forIncDec(count):
     if getCP(count) == lexi.IDENTIFIER:
-        if asSt(count):
-            return True
+        if tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
+            count+=1
+            if argumentOrNull(count):
+                if objFunctionArrayInvocationRecursive(count):
+                    if asOpOrCompound(count):
+                        return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_CLOSE":
         return True
     return False
@@ -1057,7 +1061,8 @@ def asSt(count):
         if argumentOrNull(count):
             if objFunctionArrayInvocationRecursive(count):
                 if asOpOrCompound(count):
-                    if asStLf(count):
+                    if getCP(count) == lexi.END_OF_STATEMENT:
+                        count+=1
                         return True
     return False
 
@@ -1065,9 +1070,11 @@ def asSt(count):
 def asOpOrCompound(count):
     if tokenSet[count.value][lexi.CLASS_PART] == "AS_OP":
         count += 1
+        asStLf(count)
         return True
-    elif tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
+    elif tokenSet[count.value][lexi.CLASS_PART] == lexi.COMPOUND_AS_OP:
         count += 1
+        asStLf(count)
         return True
     return False 
 
@@ -1333,6 +1340,17 @@ def arrayDec2D(count):
             return True
     elif getCP(count) == lexi.IDENTIFIER or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.END_OF_STATEMENT:
         return True
+    return False
+
+def dtOrID(count):
+
+    if getCP(count) == lexi.IDENTIFIER:
+        count+=1
+        return True
+    elif getCP(count) == lexi.DATA_TYPE:
+        count+=1
+        return True
+
     return False
 
 

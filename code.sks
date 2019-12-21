@@ -4,10 +4,26 @@ class Main(){
 
     public int myMethod(MyClass a){
 
+        for(i=0;i<5;i+=1){
+
+            a(a);
+
+
+        }
+
+        foreach YOLO i in list{
+
+        }
+
+
+        while(a-b *3){
+
+        }
+
         if(a[3][4]){ 
 
         }
-        if (a and b !=c.c()){
+        if (a and b != c.c()){
 
         } 
         else{
@@ -28,9 +44,7 @@ class Main(){
 
     public int myMethod(MyClass a){
 
-    while(a.b.c){
-
-    }
+    
     
 }
 }
