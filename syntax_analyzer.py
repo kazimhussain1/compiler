@@ -13,9 +13,12 @@ class Integer():
         self.value += other
         return self
         
-
+ARROW = "-->"
 TYPE = "TYPE"
 T_RIGHT = "T_RIGHT"
+R_Type = "R_Type"
+ACCESS_MODIFIER = "ACCESS_MODIFIER"
+TYPE_MODIFIER = "TYPE_MODIFIER"
 
 class compatEntity():
     def __init__(self, left, right, op, result):
@@ -59,9 +62,94 @@ compatibilityTable = [
     compatEntity("int", None, "not", "int"),
     
 ]
-        
+
+
+class scopeEntity():
+    def __init__(self, name, type_):
+        self.name = name
+        self.type = type_
+
+class DTEntity():
+    def __init__(self, name, type_, parent, CDT):
+        self.name = name
+        self.type = type_
+        self.parent = parent
+        self.CDT = CDT
+
+class CDTEntity():
+    def __init__(self, name, type_, AM, TM):
+        self.name = name
+        self.type = type_
+        self.AM = AM
+        self.TM = TM
+
+
+scopeTable = []
+
+scopeStack = []
+
+defTable = []
 
 tokenSet = []
+
+
+def lookUpST(N, scopeStack, CDT):
+    for item in scopeTable:
+        if item.name == N:
+            if ARROW in item:
+                return item.type_.split(ARROW)[1]
+            else:
+                return item.type_
+    return None
+
+
+def insertST(N, T):
+    if lookUpST(N, scopeStack) == None:
+        scopeTable.append(scopeEntity(N, T))
+
+def lookUpDT(N):
+    for item in defTable:
+        return item.type_
+    return None
+
+def insertDT(N, T, parent):
+    if lookUpDT(N) == None:
+        refTable = []
+        defTable.append( DTEntity(N,T,parent,refTable)) 
+        return refTable
+    
+    return False
+
+def lookUpCDT(N, T, CDT):
+    for item in CDT:
+        if item.name == N:
+            if ARROW in item:
+                return {R_Type:item.split(ARROW)[1], ACCESS_MODIFIER:item.AM, TYPE_MODIFIER:item.TM}
+            else:
+               return {R_Type:item, ACCESS_MODIFIER:item.AM, TYPE_MODIFIER:item.TM} 
+    return None
+
+def lookUpCDTfromDT(N, T, DTname):
+    for item in defTable:
+        if item.name == DTname:
+            for thing in item.CDT:
+                if thing.name == N:
+                    if ARROW in item:
+                        return {R_Type:thing.split(ARROW)[1], ACCESS_MODIFIER:thing.AM, TYPE_MODIFIER:thing.TM}
+                    else:
+                        return {R_Type:thing, ACCESS_MODIFIER:thing.AM, TYPE_MODIFIER:thing.TM}
+    return None
+
+
+    
+
+
+def insertCDT(N, T, AM, TM, CDT):
+    if lookUpCDT(N, T, CDT) == None:
+        CDT.append(CDTEntity(N, T, AM, TM, CDT))    
+        return True
+    return False
+        
 
 def getCP(count):
     return tokenSet[count.value][lexi.CLASS_PART]

@@ -1,12 +1,16 @@
-myDict = {}
+# myDict = {}
 
-def myFunc(data):
-    data["key"] = "abc"
+# def myFunc(data):
+#     data["key"] = "abc"
 
-myDict["key"] = None
+# myDict["key"] = None
 
-print(myDict["key"])
+# print(myDict["key"])
 
-myFunc(myDict)
-print(myDict["key"])
+# myFunc(myDict)
+# print(myDict["key"])
+
+a = "kazim"
+
+print(a.split("l"))
 
