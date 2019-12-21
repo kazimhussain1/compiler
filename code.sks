@@ -4,16 +4,20 @@ class Main(){
 
     public int myMethod(MyClass a){
 
-        if(5 + 5){ 
-
-        }  else{
+        if(a[3][4]){ 
 
         }
+        if (a and b !=c.c()){
 
+        } 
+        else{
+
+        }
         int b = 9;
-
+        boolean a = true;
 
     }
+        public float a = 0.5;
 
 
     public static int a = 5;

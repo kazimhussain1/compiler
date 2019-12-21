@@ -25,6 +25,7 @@ class compatEntity():
         self.result = result
 
 
+
 compatibilityTable = [
     compatEntity("int", "int", "+", "int"),
     compatEntity("int", "int", "-", "int"),
@@ -53,6 +54,10 @@ compatibilityTable = [
     compatEntity("float", "int", "/", "float"),
     compatEntity("int", "float", "=", "int"),
     compatEntity("float", "int", "=", "float"),
+    compatEntity("boolean", None, "not", "boolean"),
+    compatEntity("float", None, "not", "float"),
+    compatEntity("int", None, "not", "int"),
+    
 ]
         
 
@@ -70,6 +75,13 @@ def checkCompat(type_left, type_right, operator):
             return item.result
     
     return None
+
+def checkCompatUnary(typeOperand, operator):
+    for item in compatibilityTable:
+        if typeOperand == item.left and None == item.right and operator == item.op:
+            return item.result
+    
+    return None    
 
 
 def main():
@@ -452,26 +464,41 @@ def  initIdConst(count):
         if init(count):
             return True
     elif getCP(count) == lexi.INTEGER_CONST or getCP(count) == lexi.STRING_CONST or getCP(count) == lexi.FLOAT_CONST or getCP(count) == lexi.BOOLEAN_CONSTANTS:
-        if const(count):
+        data = {}
+        data[TYPE] = None
+        if const(count, data):
             return True
     return False
 
 
-def const(count, data):
+def const(count, data, isRightOperand=False):
     if tokenSet[count.value][lexi.CLASS_PART] == lexi.INTEGER_CONST: 
-        data[TYPE] = "int"
+        if isRightOperand:
+            data[T_RIGHT] = "int"
+        else:
+            data[TYPE] = "int"
+
         count+=1
         return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "STRING_CONST":
-        data[TYPE] = "text"
+        if isRightOperand:
+            data[T_RIGHT] = "text"
+        else:
+            data[TYPE] = "text"
         count+=1
         return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "FLOAT_CONST":
-        data[TYPE] = "float"
+        if isRightOperand:
+            data[T_RIGHT] = "float"
+        else:
+            data[TYPE] = "float"
         count+=1
         return True
     elif tokenSet[count.value][lexi.CLASS_PART] == lexi.BOOLEAN_CONSTANTS:
-        data[TYPE] = "boolean"
+        if isRightOperand:
+            data[T_RIGHT] = "boolean"
+        else:
+            data[TYPE] = "boolean"
         count+=1
         return True 
     return False
@@ -564,21 +591,19 @@ def argumentBodyRecursive(count):
     return False
 
 
-def condition(count, data):
-    if ae(count, data):
+def condition(count, data, isRightOperand=False):
+    if ae(count, data, isRightOperand):
         if condition_dash(count, data):
             return True
     return False
 
 
-
-
 def condition_dash(count, data):
-    if tokenSet[count.value][lexi.CLASS_PART] == "OR":
+    if tokenSet[count.value][lexi.CLASS_PART] == lexi.BOOLEAN_OR:
         operator = getVP(count)
         count+=1
         data[T_RIGHT] = None
-        if ae(count, data):
+        if ae(count, data, True):
             data[TYPE] = checkCompat(data[TYPE], data[T_RIGHT], operator)
             if data[TYPE] == None:
                 print("Type Mismatch Error at Line:{}".format(tokenSet[count.value][lexi.LINE_NUMBER]))
@@ -588,37 +613,66 @@ def condition_dash(count, data):
         return True
     return False
 
-def ae(count, data):
-    if ROPE(count, data):
+def ae(count, data, isRightOperand=False):
+    if ROPE(count, data, isRightOperand):
         if ae_dash(count, data):
             return True
     return False
 
-def ROPE(count, data):
-    if e(count, data):
+
+def ae_dash(count, data):
+    if tokenSet[count.value][lexi.CLASS_PART] == lexi.BOOLEAN_AND:
+        operator = getVP(count)
+        count += 1
+        data[T_RIGHT] = None
+        if ROPE(count, data, True):
+            data[TYPE] = checkCompat(data[TYPE], data[T_RIGHT], operator)
+            if data[TYPE] == None:
+                print("Type Mismatch Error at Line:{}".format(tokenSet[count.value][lexi.LINE_NUMBER]))
+            if ae_dash(count, data):
+                return True
+    elif getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
+        return True
+    return False
+
+def ROPE(count, data, isRightOperand=False):
+    if e(count, data, isRightOperand):
         if ROPE_Dash(count, data):
             return True
     return False
 
 
-def e(count, data):
-    if t(count, data):
+
+
+def ROPE_Dash(count, data):
+    if tokenSet[count.value][lexi.CLASS_PART] == "RELATIONAL_OP":
+        operator = getVP(count)
+        count += 1
+        data[T_RIGHT] = None
+        if e(count, data, True):
+            data[TYPE] = checkCompat(data[TYPE], data[T_RIGHT], operator)
+            if data[TYPE] == None:
+                print("Type Mismatch Error at Line:{}".format(tokenSet[count.value][lexi.LINE_NUMBER]))
+            if ROPE_Dash(count, data):
+                return True
+    elif getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
+        return True
+    return False
+
+
+def e(count, data, isRightOperand=False):
+    if t(count, data, isRightOperand):
         if e_Dash(count, data):
             return True
     return False
 
-def t(count, data):
-    if f(count, data):
-        if t_Dash(count, data):
-            return True
-    return False
 
 def e_Dash(count, data):
     if getCP(count) == lexi.PM:
         operator = getVP(count)
         count+=1
         data[T_RIGHT] = None
-        if t(count, data):
+        if t(count, data, True):
             data[TYPE] = checkCompat(data[TYPE], data[T_RIGHT], operator)
             if data[TYPE] == None:
                 print("Type Mismatch Error at Line:{}".format(tokenSet[count.value][lexi.LINE_NUMBER]))
@@ -628,15 +682,19 @@ def e_Dash(count, data):
         return True
     return False
 
-
+def t(count, data, isRightOperand=False):
+    if f(count, data, isRightOperand):
+        if t_Dash(count, data):
+            return True
+    return False
 
 
 def t_Dash(count, data):
     if getCP(count) == lexi.MDM:
-        operator = getVP.count
+        operator = getVP(count)
         count+=1
         data[T_RIGHT] = None
-        if f(count, data):
+        if f(count, data, True):
             data[TYPE] = checkCompat(data[TYPE], data[T_RIGHT], operator)
             if data[TYPE] == None:
                 print("Type Mismatch Error at Line:{}".format(tokenSet[count.value][lexi.LINE_NUMBER]))
@@ -649,36 +707,24 @@ def t_Dash(count, data):
 
 
 
-def mdm(count):
-    if tokenSet[count.value][lexi.CLASS_PART] == "*":
-        count+=1
-        return True
-    elif tokenSet[count.value][lexi.CLASS_PART] == "/":
-        count+=1
-        return True
-    elif tokenSet[count.value][lexi.CLASS_PART] == "%":
-        count+=1
-        return True
-    return False
-
-def f(count, data):
+def f(count, data, isRightOperand=False):
     if tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_OPEN":
         count+=1
         data = {}
-        if condition(count, data):
+        if condition(count, data, isRightOperand):
             if tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_CLOSE":
                 count+=1
                 return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "NOT":
         count+=1
-        if f(count, data):
+        if f(count, data, isRightOperand):
             return True
     elif getCP(count) == lexi.INTEGER_CONST or getCP(count) == lexi.STRING_CONST or getCP(count) == lexi.FLOAT_CONST or getCP(count) == lexi.BOOLEAN_CONSTANTS:
-        if const(count, data):
+        if const(count, data, isRightOperand):
             return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
         count+=1
-        if f_Lf(count, data):
+        if f_Lf(count, data, isRightOperand):
             return True
     return False
         
@@ -688,7 +734,7 @@ def f(count, data):
 
 
 
-def f_Lf(count, data):
+def f_Lf(count, data, isRightOperand):
     if getCP(count) == lexi.ROUND_BRACKET_OPEN or getCP(count) == lexi.SQUARE_BRACKET_OPEN  or getCP(count) == lexi.METHOD_OP  or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
         if argumentOrNull(count):
             if objFunctionArrayInvocationRecursive(count):
@@ -858,6 +904,7 @@ def arrayCall2d(count):
         if e(count, data):
             if tokenSet[count.value][lexi.CLASS_PART] == "SQUARE_BRACKET_CLOSE":
                 count+=1
+                return True
     elif getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
         return True
     return False
@@ -895,7 +942,7 @@ def elif_(count):
                     if body(count):
                         if elif_(count):
                             return True
-    elif getCP(count) == lexi.ELSE or getCP(count) == lexi.DATA_TYPE or getCP(count) == lexi.WHILE or getCP(count) == lexi.IF or getCP(count) == lexi.FOR or getCP(count) == lexi.FOREACH or getCP(count) == lexi.SEND or getCP(count) == lexi.IDENTIFIER:
+    elif getCP(count) == lexi.ELSE or getCP(count) == lexi.DATA_TYPE or getCP(count) == lexi.WHILE or getCP(count) == lexi.IF or getCP(count) == lexi.FOR or getCP(count) == lexi.FOREACH or getCP(count) == lexi.RETURN or getCP(count) == lexi.IDENTIFIER:
         return True
     return False
 
@@ -909,7 +956,7 @@ def else_(count):
         count+=1
         if body(count):
             return True
-    elif getCP(count) == lexi.DATA_TYPE or getCP(count) == lexi.WHILE or getCP(count) == lexi.IF or getCP(count) == lexi.FOR or getCP(count) == lexi.FOREACH or getCP(count) == lexi.SEND or getCP(count) == lexi.IDENTIFIER:
+    elif getCP(count) == lexi.DATA_TYPE or getCP(count) == lexi.WHILE or getCP(count) == lexi.IF or getCP(count) == lexi.FOR or getCP(count) == lexi.FOREACH or getCP(count) == lexi.RETURN or getCP(count) == lexi.IDENTIFIER:
         return True
     return False
 
@@ -1163,7 +1210,8 @@ def idConst(count):
     if tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
         count+=1
     elif getCP(count) == lexi.INTEGER_CONST or getCP(count) == lexi.FLOAT_CONST or getCP(count) == lexi.STRING_CONST or getCP(count) == lexi.BOOLEAN_CONSTANTS:
-        if const(count):
+        data = {}
+        if const(count, data):
             return True
     return False
 
@@ -1264,39 +1312,6 @@ def list_(count):
     return False
 
 
-
-
-
-def ROPE_Dash(count, data):
-    if tokenSet[count.value][lexi.CLASS_PART] == "RELATIONAL_OP":
-        operator = getVP(count)
-        count += 1
-        data[T_RIGHT] = None
-        if e(count, data):
-            data[TYPE] = checkCompat(data[TYPE], data[T_RIGHT], operator)
-            if data[TYPE] == None:
-                print("Type Mismatch Error at Line:{}".format(tokenSet[count.value][lexi.LINE_NUMBER]))
-            if ROPE_Dash(count, data):
-                return True
-    elif getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
-        return True
-    return False
-
-
-def ae_dash(count, data):
-    if tokenSet[count.value][lexi.CLASS_PART] == "AND":
-        operator = getVP(count)
-        count += 1
-        data[T_RIGHT] = None
-        if ROPE(count, count):
-            data[TYPE] = checkCompat(data[TYPE], data[T_RIGHT], operator)
-            if data[TYPE] == None:
-                print("Type Mismatch Error at Line:{}".format(tokenSet[count.value][lexi.LINE_NUMBER]))
-            if ae_dash(count, count):
-                return True
-    elif getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
-        return True
-    return False
 
 
 def arrayDec(count):
