@@ -2,13 +2,15 @@ import A;
 
 class Main(){
 
+    public int myMethod(){
+
+    }
+
     public int myMethod(MyClass a){
 
         for(i=0;i<5;i+=1){
 
             a(a);
-
-
         }
 
         foreach YOLO i in list{
@@ -42,9 +44,5 @@ class Main(){
     
     public static int a = 5;
 
-    public int myMethod(MyClass a){
-
     
-    
-}
 }
