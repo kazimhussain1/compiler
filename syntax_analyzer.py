@@ -92,6 +92,22 @@ defTable = []
 
 tokenSet = []
 
+class Stack():
+
+    def __init__(self):
+        pass
+
+    def createScope(self):
+        pass
+
+    def deleteScope(self):
+        pass
+
+    def peek(self):
+        pass
+
+
+
 
 def lookUpST(N, scopeStack, CDT):
     for item in scopeTable:
