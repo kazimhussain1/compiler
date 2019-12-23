@@ -1,7 +1,14 @@
-import A;
+class A(){
 
-class Main(){
+    public int myMethod(){
+        a();
+    }
+}
 
+class Main(A,B){
+
+
+##
     public int myMethod(){
 
     }
@@ -43,6 +50,6 @@ class Main(){
     
     
     public static int a = 5;
-
+##
     
 }
