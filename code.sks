@@ -1,12 +1,14 @@
 class Car(){
 
     public constructor Car(){
-
+        k=0;
     }
 
     private int drive(){
         
-        for(int i=0; i<10;i+=1){
+        int i,j;
+        
+        for(i=0; j<10;i+=1){
 
         }
     }
@@ -15,9 +17,11 @@ class Car(){
 
 class Main(Car){
 
-    private int func(){
+    private Car func(){
         Car a = Car();
         a.drive();
+
+        send a;
     }
     
 

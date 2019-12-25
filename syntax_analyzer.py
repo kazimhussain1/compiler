@@ -32,21 +32,21 @@ compatibilityTable = [
     compatEntity("int", "int", "*", "int"),
     compatEntity("int", "int", "/", "int"),
     compatEntity("int", "int", "=", "int"),
-    compatEntity("int", "int", "AND", "int"),
-    compatEntity("int", "int", "and", "int"),
-    compatEntity("int", "int", "OR", "int"),
-    compatEntity("int", "int", "or", "int"),
-    compatEntity("int", None, "not", "int"),
-    compatEntity("int", "int", "<", "int"),
-    compatEntity("int", "int", ">", "int"),
-    compatEntity("int", "int", "==", "int"),
-    compatEntity("int", "int", "!=", "int"),
-    compatEntity("int", "int", "<=", "int"),
-    compatEntity("int", "int", ">=", "int"),
-    compatEntity("int", "int", "+=", "int"),
-    compatEntity("int", "int", "-=", "int"),
-    compatEntity("int", "int", "*=", "int"),
-    compatEntity("int", "int", "/=", "int"),
+    compatEntity("int", "int", "AND", "boolean"),
+    compatEntity("int", "int", "and", "boolean"),
+    compatEntity("int", "int", "OR", "boolean"),
+    compatEntity("int", "int", "or", "boolean"),
+    compatEntity("int", None, "not", "boolean"),
+    compatEntity("int", "int", "<", "boolean"),
+    compatEntity("int", "int", ">", "boolean"),
+    compatEntity("int", "int", "==", "boolean"),
+    compatEntity("int", "int", "!=", "boolean"),
+    compatEntity("int", "int", "<=", "boolean"),
+    compatEntity("int", "int", ">=", "boolean"),
+    compatEntity("int", "int", "+=", "boolean"),
+    compatEntity("int", "int", "-=", "boolean"),
+    compatEntity("int", "int", "*=", "boolean"),
+    compatEntity("int", "int", "/=", "boolean"),
 
     
 
@@ -57,21 +57,21 @@ compatibilityTable = [
     compatEntity("float", "float", "*", "float"),
     compatEntity("float", "float", "/", "float"),
     compatEntity("float", "float", "=", "float"),
-    compatEntity("float", "float", "AND", "float"),
-    compatEntity("float", "float", "and", "float"),
-    compatEntity("float", "float", "OR", "float"),
-    compatEntity("float", "float", "or", "float"),
-    compatEntity("float", None, "not", "float"),
-    compatEntity("float", "float", "<", "float"),
-    compatEntity("float", "float", ">", "float"),
-    compatEntity("float", "float", "==", "float"),
-    compatEntity("float", "float", "!=", "float"),
-    compatEntity("float", "float", "<=", "float"),
-    compatEntity("float", "float", ">=", "float"),
-    compatEntity("float", "float", "+=", "float"),
-    compatEntity("float", "float", "-=", "float"),
-    compatEntity("float", "float", "*=", "float"),
-    compatEntity("float", "float", "/=", "float"),
+    compatEntity("float", "float", "AND", "boolean"),
+    compatEntity("float", "float", "and", "boolean"),
+    compatEntity("float", "float", "OR", "boolean"),
+    compatEntity("float", "float", "or", "boolean"),
+    compatEntity("float", None, "not", "boolean"),
+    compatEntity("float", "float", "<", "boolean"),
+    compatEntity("float", "float", ">", "boolean"),
+    compatEntity("float", "float", "==", "boolean"),
+    compatEntity("float", "float", "!=", "boolean"),
+    compatEntity("float", "float", "<=", "boolean"),
+    compatEntity("float", "float", ">=", "boolean"),
+    compatEntity("float", "float", "+=", "boolean"),
+    compatEntity("float", "float", "-=", "boolean"),
+    compatEntity("float", "float", "*=", "boolean"),
+    compatEntity("float", "float", "/=", "boolean"),
 
 
     ########### BOOLEAN #####################
@@ -96,6 +96,16 @@ compatibilityTable = [
     compatEntity("int", "float", "*", "float"),
     compatEntity("int", "float", "/", "float"),
     compatEntity("int", "float", "=", "int"),
+    compatEntity("int", "float", "<", "boolean"),
+    compatEntity("int", "float", ">", "boolean"),
+    compatEntity("int", "float", "==", "boolean"),
+    compatEntity("int", "float", "!=", "boolean"),
+    compatEntity("int", "float", "<=", "boolean"),
+    compatEntity("int", "float", ">=", "boolean"),
+    compatEntity("int", "float", "+=", "boolean"),
+    compatEntity("int", "float", "-=", "boolean"),
+    compatEntity("int", "float", "*=", "boolean"),
+    compatEntity("int", "float", "/=", "boolean"),
 
     ###### FLOAT INT ######
 
@@ -108,10 +118,22 @@ compatibilityTable = [
     compatEntity("float", "int", "and", "float"),
     compatEntity("float", "int", "OR", "float"),
     compatEntity("float", "int", "or", "float"),
+    compatEntity("float", "int", "<", "boolean"),
+    compatEntity("float", "int", ">", "boolean"),
+    compatEntity("float", "int", "==", "boolean"),
+    compatEntity("float", "int", "!=", "boolean"),
+    compatEntity("float", "int", "<=", "boolean"),
+    compatEntity("float", "int", ">=", "boolean"),
+    compatEntity("float", "int", "+=", "boolean"),
+    compatEntity("float", "int", "-=", "boolean"),
+    compatEntity("float", "int", "*=", "boolean"),
+    compatEntity("float", "int", "/=", "boolean"),
 
     ##### TEXT #####
 
-    compatEntity("text", "text", "=", "text")
+    compatEntity("text", "text", "=", "text"),
+    compatEntity("text", "text", "==", "boolean"),
+    compatEntity("text", "text", "!=", "boolean"),
 ]
 
 scopeTable = []
@@ -427,8 +449,8 @@ def classBodyStLf(count, data):
                 return True
     elif tokenSet[count.value][lexi.CLASS_PART] == lexi.IDENTIFIER:
         DT = getVP(count)
-        if lookUpDT(DT) != None:
-           print(fg.red, "Redeclaration Error at line: {}", getLine(count), fg.rs, sep = '')
+        if lookUpDT(DT) == None:
+           print(fg.red, "{} not declared at line: {}".format(N, getLine(count)), fg.rs, sep = '')
 
         count+=1
         if tokenSet[count.value][lexi.CLASS_PART] == lexi.IDENTIFIER:
@@ -1585,7 +1607,7 @@ def sstAllFunctions(count, data):
                 if tokenSet[count.value][lexi.CLASS_PART] == "END_OF_STATEMENT":
                     count+=1
                     return True
-    elif getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.ROUND_BRACKET_CLOSE or getCP(count) == lexi.IDENTIFIER or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.DATA_TYPE or getCP(count) == lexi.WHILE or getCP(count) == lexi.IF or getCP(count) == lexi.FOR or getCP(count) == lexi.FOREACH or getCP(count) == lexi.RETURN:
+    elif getCP(count) == lexi.ROUND_BRACKET_OPEN or getCP(count) == lexi.SQUARE_BRACKET_OPEN  or getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
         if argumentOrNull(count, data):
             if objFunctionArrayInvocationRecursive(count,data):
                 if asOpOrCompound(count, data):
@@ -1595,6 +1617,9 @@ def sstAllFunctions(count, data):
     elif tokenSet[count.value][lexi.CLASS_PART] == "END_OF_STATEMENT" or lexi.SEPARATOR_OP or getCP(count) == "ROUND_BRACKET_CLOSE" or getCP(count) == "IDENTIFIER" or getCP(count) == "CURLY_BRACKET_CLOSE" or getCP(count) == "DATA_TYPE" or getCP(count) == "WHILE" or getCP(count) == "IF" or getCP(count) == "FOR" or getCP(count) == "FOR_EACH" or getCP(count) == "SEND":
         return True
     return False
+
+
+
 
 
 def sst(count, data):
@@ -1623,7 +1648,7 @@ def sst(count, data):
     return False
 
 def return_(count,data):
-    if tokenSet[count.value][lexi.CLASS_PART] == "SEND":
+    if tokenSet[count.value][lexi.CLASS_PART] == lexi.RETURN:
         count+=1
         if rValue(count,data):
             if tokenSet[count.value][lexi.CLASS_PART] == "END_OF_STATEMENT":
@@ -1637,6 +1662,7 @@ def rValue(count,data):
     if getCP(count) == lexi.ROUND_BRACKET_OPEN or getCP(count) == lexi.UNI_BOOLEAN_OP or getCP(count) == lexi.IDENTIFIER or getCP(count) == lexi.INTEGER_CONST or getCP(count) == lexi.FLOAT_CONST or getCP(count) == lexi.STRING_CONST or getCP(count) == lexi.BOOLEAN_CONSTANTS or getCP(count) == lexi.END_OF_STATEMENT:
         
         if condition(count, data):
+            
             return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "NONE":
         count+=1

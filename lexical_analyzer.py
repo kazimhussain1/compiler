@@ -74,7 +74,6 @@ def lexicalAnalyzer(path):
 
         insideMultiLineComment = False
         multiLineCommentString = ""
-        multiLineCommentStart = 0
 
         for line in inputFile:
             line += " "
@@ -103,7 +102,6 @@ def lexicalAnalyzer(path):
 
                 if line[charIndex] == "#" and line[charIndex+1] == "#" and not insideString:
                     insideMultiLineComment = True
-                    multiLineCommentStart = lineNumber
                     if len(temp) > 0 :
                         generateToken(temp, lineNumber, outputFile)
                         temp = ""
@@ -202,7 +200,7 @@ def lexicalAnalyzer(path):
                                 temp += line[charIndex]
                                 charIndex+=1
                                 continue
-                            except Exception as e:
+                            except Exception:
                                 #print(e)
                                 pass
 
