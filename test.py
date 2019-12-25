@@ -10,7 +10,13 @@
 # myFunc(myDict)
 # print(myDict["key"])
 
-a = "kazim"
+# a = "kazim"
 
-print(a.split("l"))
+# print(a.split("l"))
+
+a = 1
+b = 2
+
+c = a and b
+print(c)
 
