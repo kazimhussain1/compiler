@@ -18,5 +18,5 @@ a = 1
 b = 2
 
 c = a and b
-print(c)
+print(type(c))
 

@@ -37,7 +37,18 @@ compatibilityTable = [
     compatEntity("int", "int", "OR", "int"),
     compatEntity("int", "int", "or", "int"),
     compatEntity("int", None, "not", "int"),
-    compatEntity("text", "text", "=", "text"),
+    compatEntity("int", "int", "<", "int"),
+    compatEntity("int", "int", ">", "int"),
+    compatEntity("int", "int", "==", "int"),
+    compatEntity("int", "int", "!=", "int"),
+    compatEntity("int", "int", "<=", "int"),
+    compatEntity("int", "int", ">=", "int"),
+    compatEntity("int", "int", "+=", "int"),
+    compatEntity("int", "int", "-=", "int"),
+    compatEntity("int", "int", "*=", "int"),
+    compatEntity("int", "int", "/=", "int"),
+
+    
 
     ########### FLOAT #####################
 
@@ -51,6 +62,17 @@ compatibilityTable = [
     compatEntity("float", "float", "OR", "float"),
     compatEntity("float", "float", "or", "float"),
     compatEntity("float", None, "not", "float"),
+    compatEntity("float", "float", "<", "float"),
+    compatEntity("float", "float", ">", "float"),
+    compatEntity("float", "float", "==", "float"),
+    compatEntity("float", "float", "!=", "float"),
+    compatEntity("float", "float", "<=", "float"),
+    compatEntity("float", "float", ">=", "float"),
+    compatEntity("float", "float", "+=", "float"),
+    compatEntity("float", "float", "-=", "float"),
+    compatEntity("float", "float", "*=", "float"),
+    compatEntity("float", "float", "/=", "float"),
+
 
     ########### BOOLEAN #####################
 
@@ -85,7 +107,11 @@ compatibilityTable = [
     compatEntity("float", "int", "AND", "float"),
     compatEntity("float", "int", "and", "float"),
     compatEntity("float", "int", "OR", "float"),
-    compatEntity("float", "int", "or", "float")
+    compatEntity("float", "int", "or", "float"),
+
+    ##### TEXT #####
+
+    compatEntity("text", "text", "=", "text")
 ]
 
 scopeTable = []
