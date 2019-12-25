@@ -1,12 +1,25 @@
-class A(){
+class Car(){
 
-    public int myMethod(){
-        a();
+    public constructor Car(){
+
     }
+
+    private int drive(){
+        
+        for(int i=0; i<10;i+=1){
+
+        }
+    }
+
 }
 
-class Main(A,B){
+class Main(Car){
 
+    private int func(){
+        Car a = Car();
+        a.drive();
+    }
+    
 
 ##
     public int myMethod(){
