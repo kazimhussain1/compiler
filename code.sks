@@ -1,10 +1,23 @@
 class Car(){
 
     public constructor Car(){
-        k=0;
+
+        int a,b;
+        a = a + b;
+
+
+        int i,j;
+        j += 1;
+
+    ##
+        int a,b;
+        while(a<b){
+
+        }
+        ##
     }
 
-    private int drive(){
+    public int drive(){
         
         int i,j;
         
@@ -12,6 +25,13 @@ class Car(){
 
         }
     }
+
+
+     public int handle()
+    {
+        a = 5;
+    }
+
 
 }
 

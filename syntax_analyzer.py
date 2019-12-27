@@ -450,7 +450,7 @@ def classBodyStLf(count, data):
     elif tokenSet[count.value][lexi.CLASS_PART] == lexi.IDENTIFIER:
         DT = getVP(count)
         if lookUpDT(DT) == None:
-           print(fg.red, "{} not declared at line: {}".format(N, getLine(count)), fg.rs, sep = '')
+           print(fg.red, "{} not declared at line: {}".format(getVP(count), getLine(count)), fg.rs, sep = '')
 
         count+=1
         if tokenSet[count.value][lexi.CLASS_PART] == lexi.IDENTIFIER:
@@ -984,7 +984,7 @@ def f(count, data, isRightOperand=False):
 
 def f_Lf(count, data, isRightOperand):
     if getCP(count) == lexi.ROUND_BRACKET_OPEN or getCP(count) == lexi.SQUARE_BRACKET_OPEN  or getCP(count) == lexi.METHOD_OP  or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
-        if argumentOrNull(count, data):
+        if argumentOrNull(count, data, isRightOperand = isRightOperand):
             if objFunctionArrayInvocationRecursive(count, data):
                 return True
     elif getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE or getCP(count) == lexi.SQUARE_BRACKET_CLOSE:
@@ -1138,7 +1138,7 @@ def objectList(count, data):
 
 
 
-def argumentOrNull(count, data, lookUpFromDT = False):
+def argumentOrNull(count, data, lookUpFromDT = False, isRightOperand = False):
     if getCP(count) == lexi.ROUND_BRACKET_OPEN:
         if argumentBody(count, data):
 
@@ -1147,13 +1147,22 @@ def argumentOrNull(count, data, lookUpFromDT = False):
             else:
                 returnType = lookUpCDT(data[NAME], data[PARAMETER_LIST], data[CLASS_DATA_TABLE])
             if returnType:
-                data[TYPE] = returnType[R_Type]
+                if isRightOperand:
+                    data[T_RIGHT] = returnType[R_Type]
+                else:
+                    data[TYPE] = returnType[R_Type]
             else:
                 returnType = lookUpCDTfromDT(data[NAME], data[PARAMETER_LIST], data[NAME])
                 if returnType:
-                    data[TYPE] = returnType[R_Type]
+                    if isRightOperand:
+                        data[T_RIGHT] = returnType[R_Type]
+                    else:
+                        data[TYPE] = returnType[R_Type]
                 else:
-                    data[TYPE] = ""
+                    if isRightOperand:
+                        data[T_RIGHT] = ""
+                    else:
+                        data[TYPE] = ""
 
 
             if not returnType:
@@ -1167,7 +1176,10 @@ def argumentOrNull(count, data, lookUpFromDT = False):
             return True
     elif getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE or getCP(count) == lexi.COMPOUND_AS_OP:
         DT = lookUpST(data[NAME], data[CLASS_DATA_TABLE])
-        data[TYPE] = DT
+        if isRightOperand:
+            data[T_RIGHT] = DT
+        else:
+            data[TYPE] = DT
 
         if DT == None:
            print(fg.red, "{} not declared at line: {}".format(data[NAME], getLine(count)), fg.rs, sep = '')
@@ -1188,7 +1200,7 @@ def objFunctionArrayInvocationRecursive(count, data):
             data[NAME] = getVP(count)
 
             count+=1
-            if  argumentOrNull(count, data, True):
+            if  argumentOrNull(count, data, lookUpFromDT = True):
                 if objFunctionArrayInvocationRecursive(count, data):
                     return True
     elif getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE or getCP(count) == lexi.COMPOUND_AS_OP:
@@ -1607,7 +1619,7 @@ def sstAllFunctions(count, data):
                 if tokenSet[count.value][lexi.CLASS_PART] == "END_OF_STATEMENT":
                     count+=1
                     return True
-    elif getCP(count) == lexi.ROUND_BRACKET_OPEN or getCP(count) == lexi.SQUARE_BRACKET_OPEN  or getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
+    elif getCP(count) == lexi.ROUND_BRACKET_OPEN or getCP(count) == lexi.SQUARE_BRACKET_OPEN  or getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.COMPOUND_AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
         if argumentOrNull(count, data):
             if objFunctionArrayInvocationRecursive(count,data):
                 if asOpOrCompound(count, data):
