@@ -43,10 +43,10 @@ compatibilityTable = [
     compatEntity("int", "int", "!=", "boolean"),
     compatEntity("int", "int", "<=", "boolean"),
     compatEntity("int", "int", ">=", "boolean"),
-    compatEntity("int", "int", "+=", "boolean"),
-    compatEntity("int", "int", "-=", "boolean"),
-    compatEntity("int", "int", "*=", "boolean"),
-    compatEntity("int", "int", "/=", "boolean"),
+    compatEntity("int", "int", "+=", "int"),
+    compatEntity("int", "int", "-=", "int"),
+    compatEntity("int", "int", "*=", "int"),
+    compatEntity("int", "int", "/=", "int"),
 
     
 
@@ -68,10 +68,10 @@ compatibilityTable = [
     compatEntity("float", "float", "!=", "boolean"),
     compatEntity("float", "float", "<=", "boolean"),
     compatEntity("float", "float", ">=", "boolean"),
-    compatEntity("float", "float", "+=", "boolean"),
-    compatEntity("float", "float", "-=", "boolean"),
-    compatEntity("float", "float", "*=", "boolean"),
-    compatEntity("float", "float", "/=", "boolean"),
+    compatEntity("float", "float", "+=", "float"),
+    compatEntity("float", "float", "-=", "float"),
+    compatEntity("float", "float", "*=", "float"),
+    compatEntity("float", "float", "/=", "float"),
 
 
     ########### BOOLEAN #####################
@@ -102,10 +102,10 @@ compatibilityTable = [
     compatEntity("int", "float", "!=", "boolean"),
     compatEntity("int", "float", "<=", "boolean"),
     compatEntity("int", "float", ">=", "boolean"),
-    compatEntity("int", "float", "+=", "boolean"),
-    compatEntity("int", "float", "-=", "boolean"),
-    compatEntity("int", "float", "*=", "boolean"),
-    compatEntity("int", "float", "/=", "boolean"),
+    compatEntity("int", "float", "+=", "int"),
+    compatEntity("int", "float", "-=", "int"),
+    compatEntity("int", "float", "*=", "int"),
+    compatEntity("int", "float", "/=", "int"),
 
     ###### FLOAT INT ######
 
@@ -124,10 +124,10 @@ compatibilityTable = [
     compatEntity("float", "int", "!=", "boolean"),
     compatEntity("float", "int", "<=", "boolean"),
     compatEntity("float", "int", ">=", "boolean"),
-    compatEntity("float", "int", "+=", "boolean"),
-    compatEntity("float", "int", "-=", "boolean"),
-    compatEntity("float", "int", "*=", "boolean"),
-    compatEntity("float", "int", "/=", "boolean"),
+    compatEntity("float", "int", "+=", "float"),
+    compatEntity("float", "int", "-=", "float"),
+    compatEntity("float", "int", "*=", "float"),
+    compatEntity("float", "int", "/=", "float"),
 
     ##### TEXT #####
 
