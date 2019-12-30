@@ -2,19 +2,9 @@ class Car(){
 
     public constructor Car(){
 
-        int a,b;
-        a = a + b;
+        int a;
 
 
-        int i,j;
-        j += 1;
-
-    ##
-        int a,b;
-        while(a<b){
-
-        }
-        ##
     }
 
     public int drive(){
@@ -27,9 +17,9 @@ class Car(){
     }
 
 
-     public int handle()
+    public int handle()
     {
-        a = 5;
+        int a;
     }
 
 
@@ -38,55 +28,12 @@ class Car(){
 class Main(Car){
 
     private Car func(){
+
+        int b;
         Car a = Car();
-        a.drive();
+        b = "text" + a.drive();
 
         send a;
     }
-    
-
-##
-    public int myMethod(){
-
-    }
-
-    public int myMethod(MyClass a){
-
-        for(i=0;i<5;i+=1){
-
-            a(a);
-        }
-
-        foreach YOLO i in list{
-
-        }
-
-
-        while(a-b *3){
-
-        }
-
-        if(a[3][4]){ 
-
-        }
-        if (a and b != c.c()){
-
-        } 
-        else{
-
-        }
-        int b = 9;
-        boolean a = true;
-
-    }
-        public float a = 0.5;
-
-
-    public static int a = 5;
-
-    
-    
-    public static int a = 5;
-##
     
 }

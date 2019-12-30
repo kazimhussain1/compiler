@@ -683,8 +683,12 @@ def dec(count, data):
 
 def init(count, data):
     if tokenSet[count.value][lexi.CLASS_PART] == "AS_OP":
+        O = getVP(count)
         count+=1
         if decOpt(count, data):
+            T = checkCompat(data[DATA_TYPE], data[TYPE], O)
+            if data[DATA_TYPE] != T:
+                print(fg.red, "Cannot assign '{}' to variable of type '{}' at Line: {}".format(data[TYPE], data[DATA_TYPE], getLine(count)), fg.rs, sep = '')
             return True
     elif getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.END_OF_STATEMENT:
         return True
@@ -985,7 +989,7 @@ def f(count, data, isRightOperand=False):
 def f_Lf(count, data, isRightOperand):
     if getCP(count) == lexi.ROUND_BRACKET_OPEN or getCP(count) == lexi.SQUARE_BRACKET_OPEN  or getCP(count) == lexi.METHOD_OP  or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
         if argumentOrNull(count, data, isRightOperand = isRightOperand):
-            if objFunctionArrayInvocationRecursive(count, data):
+            if objFunctionArrayInvocationRecursive(count, data, isRightOperand = isRightOperand):
                 return True
     elif getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE or getCP(count) == lexi.SQUARE_BRACKET_CLOSE:
         return True
@@ -1190,9 +1194,12 @@ def argumentOrNull(count, data, lookUpFromDT = False, isRightOperand = False):
 
 
 
-def objFunctionArrayInvocationRecursive(count, data):
+def objFunctionArrayInvocationRecursive(count, data, isRightOperand = False):
     if tokenSet[count.value][lexi.CLASS_PART] == "METHOD_OP":
-        T = data[TYPE]
+        if isRightOperand:
+            T = data[T_RIGHT]
+        else:
+            T = data[TYPE]
         if T == "int" or T == "float" or T == "text" or T == "boolean":
            print(fg.red, "primitive data type cannot use '.' operator at line: {}".format(getLine(count)), fg.rs, sep = '')
         count+=1
@@ -1421,6 +1428,7 @@ def asSt(count, data):
         data[NAME] = N
         if argumentOrNull(count, data):
             if objFunctionArrayInvocationRecursive(count, data):
+                print(data[DATA_TYPE], data[TYPE])
                 if asOpOrCompound(count, data):
                     if getCP(count) == lexi.END_OF_STATEMENT:
                         count+=1
