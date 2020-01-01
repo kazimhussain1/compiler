@@ -1,3 +1,67 @@
+class A(){
+
+    public constructor A(int a, int b){
+
+        int d = 5;
+
+
+        while(5<9){
+
+            d=5;
+        }
+
+        for (int i =22; 22 < 15; i+=1){
+
+            a=55;
+        }
+
+        
+    }
+
+
+    #public float i = 0;
+}
+##
+class B(){
+    public A a;
+}
+
+class C(){
+    public B b = B();
+}
+
+class Main(){
+    
+    public constructor Main(){
+
+        C c = C();
+        int d;
+        int e;
+        A a = A(c,e);
+
+        int a;
+        c.C(a);
+
+        while(10 > c.b.a.i){
+
+        }
+     
+    }
+
+
+    
+}
+##
+
+
+
+
+
+
+
+
+
+##
 class Car(){
 
     public constructor Car(){
@@ -9,12 +73,12 @@ class Car(){
         int i,j;
         j += 1;
 
-    ##
+    
         int a,b;
         while(a<b){
 
         }
-        ##
+        
     }
 
     public int drive(){
@@ -45,7 +109,7 @@ class Main(Car){
     }
     
 
-##
+
     public int myMethod(){
 
     }
@@ -87,6 +151,8 @@ class Main(Car){
     
     
     public static int a = 5;
-##
+
     
 }
+
+##
