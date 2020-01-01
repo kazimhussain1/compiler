@@ -66,8 +66,7 @@ class Car(){
 
     public constructor Car(){
 
-        int a,b;
-        a = a + b;
+        int a;
 
 
         int i,j;
@@ -91,9 +90,9 @@ class Car(){
     }
 
 
-     public int handle()
+    public int handle()
     {
-        a = 5;
+        int a;
     }
 
 
@@ -102,8 +101,10 @@ class Car(){
 class Main(Car){
 
     private Car func(){
+
+        int b;
         Car a = Car();
-        a.drive();
+        b = "text" + a.drive();
 
         send a;
     }

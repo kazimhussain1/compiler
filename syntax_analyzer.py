@@ -46,10 +46,10 @@ compatibilityTable = [
     compatEntity("int", "int", "!=", "boolean"),
     compatEntity("int", "int", "<=", "boolean"),
     compatEntity("int", "int", ">=", "boolean"),
-    compatEntity("int", "int", "+=", "boolean"),
-    compatEntity("int", "int", "-=", "boolean"),
-    compatEntity("int", "int", "*=", "boolean"),
-    compatEntity("int", "int", "/=", "boolean"),
+    compatEntity("int", "int", "+=", "int"),
+    compatEntity("int", "int", "-=", "int"),
+    compatEntity("int", "int", "*=", "int"),
+    compatEntity("int", "int", "/=", "int"),
 
     
 
@@ -71,10 +71,10 @@ compatibilityTable = [
     compatEntity("float", "float", "!=", "boolean"),
     compatEntity("float", "float", "<=", "boolean"),
     compatEntity("float", "float", ">=", "boolean"),
-    compatEntity("float", "float", "+=", "boolean"),
-    compatEntity("float", "float", "-=", "boolean"),
-    compatEntity("float", "float", "*=", "boolean"),
-    compatEntity("float", "float", "/=", "boolean"),
+    compatEntity("float", "float", "+=", "float"),
+    compatEntity("float", "float", "-=", "float"),
+    compatEntity("float", "float", "*=", "float"),
+    compatEntity("float", "float", "/=", "float"),
 
 
     ########### BOOLEAN #####################
@@ -105,10 +105,10 @@ compatibilityTable = [
     compatEntity("int", "float", "!=", "boolean"),
     compatEntity("int", "float", "<=", "boolean"),
     compatEntity("int", "float", ">=", "boolean"),
-    compatEntity("int", "float", "+=", "boolean"),
-    compatEntity("int", "float", "-=", "boolean"),
-    compatEntity("int", "float", "*=", "boolean"),
-    compatEntity("int", "float", "/=", "boolean"),
+    compatEntity("int", "float", "+=", "int"),
+    compatEntity("int", "float", "-=", "int"),
+    compatEntity("int", "float", "*=", "int"),
+    compatEntity("int", "float", "/=", "int"),
 
     ###### FLOAT INT ######
 
@@ -127,10 +127,10 @@ compatibilityTable = [
     compatEntity("float", "int", "!=", "boolean"),
     compatEntity("float", "int", "<=", "boolean"),
     compatEntity("float", "int", ">=", "boolean"),
-    compatEntity("float", "int", "+=", "boolean"),
-    compatEntity("float", "int", "-=", "boolean"),
-    compatEntity("float", "int", "*=", "boolean"),
-    compatEntity("float", "int", "/=", "boolean"),
+    compatEntity("float", "int", "+=", "float"),
+    compatEntity("float", "int", "-=", "float"),
+    compatEntity("float", "int", "*=", "float"),
+    compatEntity("float", "int", "/=", "float"),
 
     ##### TEXT #####
 
@@ -718,9 +718,13 @@ def dec(count, data):
 
 def init(count, data):
     if tokenSet[count.value][lexi.CLASS_PART] == "AS_OP":
+        O = getVP(count)
         count+=1
         if decOpt(count, data):
             ICG_file.write(temp_var() + " = " + data[TEMP_VAR] + "\n")
+            T = checkCompat(data[DATA_TYPE], data[TYPE], O)
+            if data[DATA_TYPE] != T:
+                print(fg.red, "Cannot assign '{}' to variable of type '{}' at Line: {}".format(data[TYPE], data[DATA_TYPE], getLine(count)), fg.rs, sep = '')
             return True
     elif getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.END_OF_STATEMENT:
         return True
@@ -1545,6 +1549,7 @@ def asSt(count, data):
         data[NAME] = N
         if argumentOrNull(count, data):
             if objFunctionArrayInvocationRecursive(count, data):
+                print(data[DATA_TYPE], data[TYPE])
                 if asOpOrCompound(count, data):
                     if getCP(count) == lexi.END_OF_STATEMENT:
                         count+=1
