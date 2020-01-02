@@ -4,8 +4,10 @@ class A(){
 
         int d = 5;
 
+        if
 
-        while(5<9){
+
+        while((5<9) AND (7>1)){
 
             d=5;
         }
@@ -19,15 +21,26 @@ class A(){
     }
 
 
-    #public float i = 0;
-}
-##
-class B(){
-    public A a;
+    public float i = 0.0;
 }
 
-class C(){
+class B(){
+    public A a;
+
+    public A drive(){
+        
+        int i,j;
+        
+        for(i=0; j<10;i+=1){
+
+        }
+    }
+}
+
+class C(B){
     public B b = B();
+
+    
 }
 
 class Main(){
@@ -35,23 +48,30 @@ class Main(){
     public constructor Main(){
 
         C c = C();
+
+        c.drive();
+
+
+        while(10 > c.b.drive().i){
+
+        }
+
+##
         int d;
         int e;
         A a = A(c,e);
 
         int a;
         c.C(a);
-
-        while(10 > c.b.a.i){
-
-        }
+##
+        
      
     }
 
 
     
 }
-##
+
 
 
 

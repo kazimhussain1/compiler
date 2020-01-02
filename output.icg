@@ -4,21 +4,47 @@ L0:
 t1 = 5
 t2 = 9
 t3 = t1 < t2
-if(t3 == false) jmp L1
-t4 = 5
-t5 = t4
+t4 = 7
+t5 = 1
+t6 = t4 > t5
+t7 = t3 AND t6
+if(t7 == false) jmp L1
+t8 = 5
+t9 = t8
 jmp L0
 L1:
-t6 = 22
-t7 = t6
+
+t10 = 22
+t11 = t10
 L2:
-t7 = 22
-t8 = 15
-t9 = t7 < t8
-if(t9 == false) jmp L3
-t10 = 1
-t11 = t11 )t10
-t12 = 55
-t13 = t12
+t11 = 22
+t12 = 15
+t13 = t11 < t12
+if(t13 == false) jmp L3
+t16 = 55
+t17 = t16
+t14 = 1
+t15 = t15 + t14
 jmp L2
 L3:
+
+t18 = 0.0
+t19 = t18
+t19 = 0
+t20 = t19
+L4:
+t21 = 10
+t22 = t19 < t21
+if(t22 == false) jmp L5
+t23 = 1
+t24 = t24 + t23
+jmp L4
+L5:
+
+L6:
+t25 = 10
+t26 = t25 > t25
+if(t26 == false) jmp L7
+jmp L6
+L7:
+

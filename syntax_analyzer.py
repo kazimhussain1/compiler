@@ -9,19 +9,19 @@ from sty import fg
 
 ARROW = "-->"
 TYPE = "TYPE"
-T_RIGHT = "T_RIGHT"
 R_Type = "R_Type"
 ACCESS_MODIFIER = "ACCESS_MODIFIER"
 TYPE_MODIFIER = "TYPE_MODIFIER"
 PARENT = "PARENT"
-
-DATA_TYPE="DATA_TYPE"
-PARAMETER_LIST="PARAMETER_LIST"
-CLASS_NAME="CLASS_NAME"
+CLASS_ENT = "CLASS_ENT"
+DATA_TYPE = "DATA_TYPE"
+PARAMETER_LIST = "PARAMETER_LIST"
+CLASS_NAME = "CLASS_NAME"
 NAME="NAME"
 CLASS_DATA_TABLE = "CLASS_DATA_TABLE"
 TEMP_VAR = "TEMP_VAR"
 TEMP_LABEL = "TEMP_LABEL"
+WRITE_ON_BUFFER = "WRITE_ON_BUFFER"
 
 
 
@@ -179,18 +179,19 @@ def insertST(N, T):
 def lookUpDT(N):
     for item in defTable:
         if N == item.name:
-            return item.type_
+            return item
     return None
 
 def insertDT(N, T, parent):
     if lookUpDT(N) == None:
-        refTable = []
-        defTable.append( DTEntity(N,T,parent,refTable)) 
-        return refTable
+        
+        ent = DTEntity(N,T,parent,[])
+        defTable.append( ent ) 
+        return ent
     
     return False
 
-def lookUpCDT(N, T, CDT):
+def lookUpCDT(N, T, CDT, class_name):
     for item in CDT:
         if item.name == N:
 
@@ -209,21 +210,43 @@ def lookUpCDT(N, T, CDT):
             else:
                 return None
 
+    for item in defTable:
+        if item.name == class_name:
+            parents = item.parent.split(",")[0]
+
     return None
 
-def lookUpCDTfromDT(N, T, DTname):
+def lookUpCDTfromDT(N, T, class_name):
     for item in defTable:
-        if item.name == DTname:
+        if item.name == class_name:
             for thing in item.CDT:
                 if thing.name == N:
-                    if ARROW in thing.type_:
-                        return {R_Type:thing.type_.split(ARROW)[1], ACCESS_MODIFIER:thing.AM, TYPE_MODIFIER:thing.TM}
-                    else:
+                    
+                    isOldFunc = ARROW in thing.type_
+                    isNewFunc = ARROW in T 
+
+                    if isOldFunc and isNewFunc:
+
+                        pListAndRTypeOld = thing.type_.split(ARROW)
+                        pListAndRTypeNew = T.split(ARROW)
+                        if pListAndRTypeOld[0] == pListAndRTypeNew[0]:
+                            return {R_Type:thing.type_.split(ARROW)[1], ACCESS_MODIFIER:thing.AM, TYPE_MODIFIER:thing.TM}
+                        else:
+                            return None
+                    elif not isOldFunc and not isNewFunc:
                         return {R_Type:thing.type_, ACCESS_MODIFIER:thing.AM, TYPE_MODIFIER:thing.TM}
+                    else:
+                        None
+            
+            parent = item.parent.split(",")[0]
+            class_ent = lookUpDT(parent)
+            if class_ent.type_ == lexi.CLASS:
+                return lookUpCDT(N,T, class_ent.CDT, class_ent)
+
     return None
 
 def insertCDT(N, T, AM, TM, CDT):
-    if lookUpCDT(N, T, CDT) == None:
+    if lookUpCDT(N, T, CDT, None) == None:
         CDT.append(CDTEntity(N, T, AM, TM))    
         return True
     return False
@@ -255,6 +278,8 @@ ICG_file = None
 label_no = 0
 temp_count = 0
 
+buffer = ""
+
 def create_label():
     global label_no
     return "L"+ str(label_no) +":"
@@ -274,6 +299,13 @@ def inc_temp():
 def dec_temp():
     global temp_count
     temp_count-=1
+
+def write_buffered(out, write_on_buffer):
+    if write_on_buffer:
+        global buffer
+        buffer += out
+    else:
+        ICG_file.write(out)
 
 def main():
     count = Integer()
@@ -418,12 +450,13 @@ def classSt(count, data):
 
             count+=1
             if inheritanceBody(count, data):
-                CDT = insertDT(CN, lexi.CLASS, data[PARAMETER_LIST])
-                data[CLASS_DATA_TABLE] = CDT
+                class_ent = insertDT(CN, lexi.CLASS, data[PARAMETER_LIST])
+                data[CLASS_ENT] = class_ent
+                data[CLASS_DATA_TABLE] = class_ent.CDT
                 data[CLASS_NAME] = CN
                 if classBody(count, data):
-                    if not lookUpCDT(CN,"",CDT):
-                        insertCDT(CN,ARROW+CN,"public", None,CDT)
+                    if not lookUpCDT(CN,"",data[CLASS_DATA_TABLE], class_ent):
+                        insertCDT(CN,ARROW+CN,"public", None,data[CLASS_DATA_TABLE])
                     return True
     return False
 
@@ -514,7 +547,7 @@ def classBodyStLfOne(count, data):
 def classBodyStLfTwo(count, data):
     if getCP(count) == lexi.ROUND_BRACKET_OPEN:
         if paramBody(count, data):
-            if not insertCDT(data[NAME], data[PARAMETER_LIST], data[ACCESS_MODIFIER], data[TYPE_MODIFIER],data[CLASS_DATA_TABLE]):
+            if not insertCDT(data[NAME], data[PARAMETER_LIST]+ARROW+data[DATA_TYPE], data[ACCESS_MODIFIER], data[TYPE_MODIFIER],data[CLASS_DATA_TABLE]):
                 print(fg.red, "Function Redeclaration Error at line: {}".format(getLine(count)), fg.rs, sep = '')
             if body(count, data):
                 scopeStack.deleteScope()
@@ -535,12 +568,14 @@ def classBodyStLfTwo(count, data):
 def classStRecursive(count):
     if getCP(count) == lexi.CLASS:
         data = {}
+        data[WRITE_ON_BUFFER] = False
         if classSt(count, data):
             if classStRecursive(count):
                 return True
 
     elif getCP(count) == lexi.INTERFACE:
-        data = {}      
+        data = {}
+        data[WRITE_ON_BUFFER] = False      
         if interfaceSt(count, data):
             if classStRecursive(count):
                 return True
@@ -721,7 +756,8 @@ def init(count, data):
         O = getVP(count)
         count+=1
         if decOpt(count, data):
-            ICG_file.write(temp_var() + " = " + data[TEMP_VAR] + "\n")
+            write_buffered(temp_var() + " = " + data[TEMP_VAR] + "\n", data[WRITE_ON_BUFFER])
+            
             T = checkCompat(data[DATA_TYPE], data[TYPE], O)
             if data[DATA_TYPE] != T:
                 print(fg.red, "Cannot assign '{}' to variable of type '{}' at Line: {}".format(data[TYPE], data[DATA_TYPE], getLine(count)), fg.rs, sep = '')
@@ -744,44 +780,43 @@ def decOpt(count, data):
 
 def const(count, data, isRightOperand=False):
     if tokenSet[count.value][lexi.CLASS_PART] == lexi.INTEGER_CONST: 
-        ICG_file.write(temp_var() + " = " + getVP(count) + "\n")
+        out = temp_var() + " = " + getVP(count) + "\n"
+        write_buffered(out, data[WRITE_ON_BUFFER])
+
         data[TEMP_VAR] = temp_var()
         inc_temp()
-        if isRightOperand:
-            data[T_RIGHT] = "int"
-        else:
-            data[TYPE] = "int"
+        data[TYPE] = "int"
 
         count+=1
         return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "STRING_CONST":
-        ICG_file.write(temp_var() + " = " + getVP(count) + "\n")
+    
+        out = temp_var() + " = " + getVP(count) + "\n"
+        write_buffered(out, data[WRITE_ON_BUFFER])
+
         data[TEMP_VAR] = temp_var()
         inc_temp()
-        if isRightOperand:
-            data[T_RIGHT] = "text"
-        else:
-            data[TYPE] = "text"
+        data[TYPE] = "text"
         count+=1
         return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "FLOAT_CONST":
-        ICG_file.write(temp_var() + " = " + getVP(count) + "\n")
+        
+        out = temp_var() + " = " + getVP(count) + "\n"
+        write_buffered(out, data[WRITE_ON_BUFFER])
+        
         data[TEMP_VAR] = temp_var()
         inc_temp()
-        if isRightOperand:
-            data[T_RIGHT] = "float"
-        else:
-            data[TYPE] = "float"
+        data[TYPE] = "float"
         count+=1
         return True
     elif tokenSet[count.value][lexi.CLASS_PART] == lexi.BOOLEAN_CONSTANTS:
-        ICG_file.write(temp_var() + " = " + getVP(count) + "\n")
+        
+        out = temp_var() + " = " + getVP(count) + "\n"
+        write_buffered(out, data[WRITE_ON_BUFFER])
+        
         data[TEMP_VAR] = temp_var()
         inc_temp()
-        if isRightOperand:
-            data[T_RIGHT] = "boolean"
-        else:
-            data[TYPE] = "boolean"
+        data[TYPE] = "boolean"
         count+=1
         return True 
     return False
@@ -841,7 +876,9 @@ def lfObjectInit(count, data):
 def argumentBody(count, data):
     if tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_OPEN":
         count+=1
+        data[PARAMETER_LIST] = ""
         if insideArgumentBody(count, data):
+            data[PARAMETER_LIST] += ARROW
             if tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_CLOSE": 
                 # if lookUpCDT(data[NAME], data[PARAMETER_LIST], data[CLASS_DATA_TABLE])== None:
                 #    print(fg.red, "{} not declared at line: {}".format(data[NAME], getLine(count)))
@@ -890,10 +927,13 @@ def condition_dash(count, data):
         temp = data[TEMP_VAR]
         operator = getVP(count)
         count+=1
-        data[T_RIGHT] = None
-        if ae(count, data, True):
-            data[TYPE] = checkCompat(data[TYPE], data[T_RIGHT], operator)
-            ICG_file.write(temp_var() + " = " + temp + " " + operator + " " + data[TEMP_VAR] + "\n")
+        leftType = data[TYPE]
+        if ae(count, data):
+            data[TYPE] = checkCompat(leftType, data[TYPE], operator)
+            
+            out = temp_var() + " = " + temp + " " + operator + " " + data[TEMP_VAR] + "\n"
+            write_buffered(out, data[WRITE_ON_BUFFER])
+        
             data[TEMP_VAR] = temp_var()
             inc_temp()
             if data[TYPE] == None:
@@ -916,10 +956,13 @@ def ae_dash(count, data):
         temp = data[TEMP_VAR]
         operator = getVP(count)
         count += 1
-        data[T_RIGHT] = None
-        if ROPE(count, data, True):
-            data[TYPE] = checkCompat(data[TYPE], data[T_RIGHT], operator)
-            ICG_file.write(temp_var() + " = " + temp + " " + operator + " " + data[TEMP_VAR] + "\n")
+        leftType = data[TYPE]
+        if ROPE(count, data):
+            data[TYPE] = checkCompat(leftType, data[TYPE], operator)
+            
+            out = temp_var() + " = " + temp + " " + operator + " " + data[TEMP_VAR] + "\n"
+            write_buffered(out, data[WRITE_ON_BUFFER])
+        
             data[TEMP_VAR] = temp_var()
             inc_temp()
             if data[TYPE] == None:
@@ -944,10 +987,13 @@ def ROPE_Dash(count, data):
         temp = data[TEMP_VAR]
         operator = getVP(count)
         count += 1
-        data[T_RIGHT] = None
-        if e(count, data, True):
-            data[TYPE] = checkCompat(data[TYPE], data[T_RIGHT], operator)
-            ICG_file.write(temp_var() + " = " + temp + " " + operator + " " + data[TEMP_VAR] + "\n")
+        leftType = data[TYPE]
+        if e(count, data):
+            data[TYPE] = checkCompat(leftType, data[TYPE], operator)
+            
+            out = temp_var() + " = " + temp + " " + operator + " " + data[TEMP_VAR] + "\n"
+            write_buffered(out, data[WRITE_ON_BUFFER])
+        
             data[TEMP_VAR] = temp_var()
             inc_temp()
             if data[TYPE] == None:
@@ -971,10 +1017,13 @@ def e_Dash(count, data):
         temp = data[TEMP_VAR]
         operator = getVP(count)
         count+=1
-        data[T_RIGHT] = None
-        if t(count, data, True):
-            data[TYPE] = checkCompat(data[TYPE], data[T_RIGHT], operator)
-            ICG_file.write(temp_var() + " = " + temp + " " + operator + " " + data[TEMP_VAR] + "\n")
+        leftType = data[TYPE]
+        if t(count, data):
+            data[TYPE] = checkCompat(leftType, data[TYPE], operator)
+            
+            out = temp_var() + " = " + temp + " " + operator + " " + data[TEMP_VAR] + "\n"
+            write_buffered(out, data[WRITE_ON_BUFFER])
+        
             data[TEMP_VAR] = temp_var()
             inc_temp()
             if data[TYPE] == None:
@@ -997,10 +1046,13 @@ def t_Dash(count, data):
         temp = data[TEMP_VAR]
         operator = getVP(count)
         count+=1
-        data[T_RIGHT] = None
-        if f(count, data, True):
-            data[TYPE] = checkCompat(data[TYPE], data[T_RIGHT], operator)
-            ICG_file.write(temp_var() + " = " + temp + " " + operator + " " + data[TEMP_VAR] + "\n")
+        leftType = data[TYPE]
+        if f(count, data):
+            data[TYPE] = checkCompat(leftType, data[TYPE], operator)
+            
+            out = temp_var() + " = " + temp + " " + operator + " " + data[TEMP_VAR] + "\n"
+            write_buffered(out, data[WRITE_ON_BUFFER])
+        
             data[TEMP_VAR] = temp_var()
             inc_temp()
             if data[TYPE] == None:
@@ -1025,7 +1077,10 @@ def f(count, data, isRightOperand=False):
     elif tokenSet[count.value][lexi.CLASS_PART] == "NOT":
         count+=1
         if f(count, data, isRightOperand):
-            ICG_file.write(temp_var() + " = " + data[TEMP_VAR] + "\n")
+            
+            out = temp_var() + " = " + data[TEMP_VAR] + "\n"
+            write_buffered(out, data[WRITE_ON_BUFFER])
+        
             data[TEMP_VAR] = temp_var()
             inc_temp()
             return True
@@ -1034,6 +1089,7 @@ def f(count, data, isRightOperand=False):
             return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
         data[NAME] = getVP(count)
+        data[TYPE] = None
         count+=1
         if f_Lf(count, data, isRightOperand):
             return True
@@ -1047,8 +1103,8 @@ def f(count, data, isRightOperand=False):
 
 def f_Lf(count, data, isRightOperand):
     if getCP(count) == lexi.ROUND_BRACKET_OPEN or getCP(count) == lexi.SQUARE_BRACKET_OPEN  or getCP(count) == lexi.METHOD_OP  or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE:
-        if argumentOrNull(count, data, isRightOperand = isRightOperand):
-            if objFunctionArrayInvocationRecursive(count, data, isRightOperand = isRightOperand):
+        if argumentOrNull(count, data):
+            if objFunctionArrayInvocationRecursive(count, data):
                 return True
     elif getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE or getCP(count) == lexi.SQUARE_BRACKET_CLOSE:
         return True
@@ -1087,7 +1143,7 @@ def constructorSt(count, data):
             count+=1
 
             if paramBody(count, data):
-                if not insertCDT(N, data[PARAMETER_LIST]+ARROW+data[CLASS_NAME],data[ACCESS_MODIFIER], lexi.CONSTRUCTOR, data[CLASS_DATA_TABLE] ):
+                if not insertCDT(N, data[PARAMETER_LIST]+ARROW+data[CLASS_NAME],data[ACCESS_MODIFIER], lexi.CONSTRUCTOR, data[CLASS_DATA_TABLE]):
                    print(fg.red, "Contructor Redeclaration Error at line: {}".format(getLine(count)), fg.rs, sep = '')
                 if tokenSet[count.value][lexi.CLASS_PART] == "CURLY_BRACKET_OPEN":
                     count+=1
@@ -1150,7 +1206,7 @@ def interfaceMethodSt(count, data):
             data[NAME] = N
 
             if paramBody(count, data):
-                if not insertCDT(data[NAME], data[DATA_TYPE], None, data[TYPE_MODIFIER], data[CLASS_NAME]):
+                if not insertCDT(data[NAME], data[DATA_TYPE], None, data[TYPE_MODIFIER], data[CLASS_DATA_TABLE]):
                    print(fg.red, "Method redeclaration Error at line: {}".format(getLine(count)), fg.rs, sep = '')
                 if tokenSet[count.value][lexi.CLASS_PART] == "END_OF_STATEMENT":
                     count+=1
@@ -1169,7 +1225,7 @@ def interfaceMethodSt(count, data):
             data[NAME] = N
 
             if paramBody(count, data):
-                if not insertCDT(data[NAME], data[DATA_TYPE], None, data[TYPE_MODIFIER], data[CLASS_NAME]):
+                if not insertCDT(data[NAME], data[DATA_TYPE], None, data[TYPE_MODIFIER], data[CLASS_DATA_TABLE]):
                    print(fg.red, "Method redeclaration Error at line: {}".format(getLine(count)), fg.rs, sep = '')
                 if tokenSet[count.value][lexi.CLASS_PART] == "END_OF_STATEMENT":
                     count+=1
@@ -1200,37 +1256,33 @@ def objectList(count, data):
 
 
 
-def argumentOrNull(count, data, lookUpFromDT = False, isRightOperand = False):
+def argumentOrNull(count, data, lookUpFromDT = False):
     if getCP(count) == lexi.ROUND_BRACKET_OPEN:
+        N = data[NAME]
+        DT = data[DATA_TYPE]
         if argumentBody(count, data):
-
+            data[DATA_TYPE] = DT
             if lookUpFromDT:
-                returnType = lookUpCDTfromDT(data[NAME], data[PARAMETER_LIST], data[TYPE])
+                returnType = lookUpCDTfromDT(N, data[PARAMETER_LIST], data[DATA_TYPE])
             else:
-                returnType = lookUpCDT(data[NAME], data[PARAMETER_LIST], data[CLASS_DATA_TABLE])
+                returnType = lookUpCDT(N, data[PARAMETER_LIST], data[CLASS_DATA_TABLE], data[CLASS_ENT])
             if returnType:
-                if isRightOperand:
-                    data[T_RIGHT] = returnType[R_Type]
-                else:
-                    data[TYPE] = returnType[R_Type]
+                data[TYPE] = returnType[R_Type]
+                data[DATA_TYPE] = returnType[R_Type]
             else:
-                returnType = lookUpCDTfromDT(data[NAME], data[PARAMETER_LIST], data[NAME])
+                returnType = lookUpCDTfromDT(N, data[PARAMETER_LIST], N)
                 if returnType:
-                    if isRightOperand:
-                        data[T_RIGHT] = returnType[R_Type]
-                    else:
-                        data[TYPE] = returnType[R_Type]
+                    data[TYPE] = returnType[R_Type]
+                    data[DATA_TYPE] = returnType[R_Type]
                 else:
-                    if isRightOperand:
-                        data[T_RIGHT] = ""
-                    else:
-                        data[TYPE] = ""
+                    data[TYPE] = ""
+                    data[DATA_TYPE] = None
 
 
             if not returnType:
-               print(fg.red, "{} not declared at line: {}".format(data[NAME], getLine(count)), fg.rs, sep = '')
+               print(fg.red, "{} not declared at line: {}".format(N, getLine(count)), fg.rs, sep = '')
             elif returnType[ACCESS_MODIFIER] != "public":
-               print(fg.red, "Cannot access {} method '{}' of class '{}' at line: {}".format(returnType[ACCESS_MODIFIER], data[NAME],data[DATA_TYPE], getLine(count)), fg.rs, sep = '')
+               print(fg.red, "Cannot access {} method '{}' of class '{}' at line: {}".format(returnType[ACCESS_MODIFIER], N,data[DATA_TYPE], getLine(count)), fg.rs, sep = '')
             if arrayCall(count, data):
                 return True
     elif getCP(count) == lexi.SQUARE_BRACKET_OPEN:
@@ -1238,31 +1290,23 @@ def argumentOrNull(count, data, lookUpFromDT = False, isRightOperand = False):
             return True
     elif getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE or getCP(count) == lexi.COMPOUND_AS_OP:
         if lookUpFromDT:
-            if isRightOperand:
-                DT = lookUpCDTfromDT(data[NAME], "", data[T_RIGHT])
-            else:
-                DT = lookUpCDTfromDT(data[NAME], "", data[DATA_TYPE])
+            DT = lookUpCDTfromDT(data[NAME], "", data[DATA_TYPE])
             if DT != None:
                 if DT[ACCESS_MODIFIER] != "public":
                     print(fg.red, "Cannot access {} method '{}' of class '{}' at line: {}".format(DT[ACCESS_MODIFIER], data[NAME],data[DATA_TYPE], getLine(count)), fg.rs, sep = '')
-                if isRightOperand:
-                    data[T_RIGHT] = DT[R_Type]
-                else:
-                    data[TYPE] = DT[R_Type]
+                
+                data[TYPE] = DT[R_Type]
+                data[DATA_TYPE] = DT[R_Type]
 
             else:
-                if isRightOperand:
-                    data[T_RIGHT] = DT
-                else:
-                    data[TYPE] = DT
+                data[TYPE] = DT
+                data[DATA_TYPE] = DT
 
         else:
             DT = lookUpST(data[NAME], data[CLASS_DATA_TABLE])
 
-            if isRightOperand:
-                data[T_RIGHT] = DT
-            else:
-                data[TYPE] = DT
+            data[TYPE] = DT
+            data[DATA_TYPE] = DT
         
         if DT == None:
             print(fg.red, "{} not declared at line: {}".format(data[NAME], getLine(count)), fg.rs, sep = '')
@@ -1273,12 +1317,9 @@ def argumentOrNull(count, data, lookUpFromDT = False, isRightOperand = False):
 
 
 
-def objFunctionArrayInvocationRecursive(count, data, isRightOperand = False):
+def objFunctionArrayInvocationRecursive(count, data):
     if tokenSet[count.value][lexi.CLASS_PART] == "METHOD_OP":
-        if isRightOperand:
-            T = data[T_RIGHT]
-        else:
-            T = data[TYPE]
+        T = data[TYPE]
         if T == "int" or T == "float" or T == "text" or T == "boolean":
            print(fg.red, "primitive data type cannot use '.' operator at line: {}".format(getLine(count)), fg.rs, sep = '')
         count+=1
@@ -1286,8 +1327,8 @@ def objFunctionArrayInvocationRecursive(count, data, isRightOperand = False):
             data[NAME] = getVP(count)
 
             count+=1
-            if  argumentOrNull(count, data, lookUpFromDT = True, isRightOperand = isRightOperand):
-                if objFunctionArrayInvocationRecursive(count, data, isRightOperand = isRightOperand):
+            if  argumentOrNull(count, data, lookUpFromDT = True):
+                if objFunctionArrayInvocationRecursive(count, data):
                     return True
     elif getCP(count) == lexi.METHOD_OP or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.AS_OP or getCP(count) == lexi.MDM or getCP(count) == lexi.PM or getCP(count) == lexi.RELATIONAL_OP or getCP(count) == lexi.BOOLEAN_AND or getCP(count) == lexi.BOOLEAN_OR or getCP(count) == lexi.END_OF_STATEMENT or getCP(count) == lexi.SEPARATOR_OP or getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ROUND_BRACKET_CLOSE or getCP(count) == lexi.COMPOUND_AS_OP:
         return True
@@ -1332,7 +1373,11 @@ def ifElseSt(count, data):
             count+=1
             
             if condition(count, data):
-                ICG_file.write("if("+ data[TEMP_VAR] +" == false) jmp " + use_label() + "\n")
+                
+                out = "if("+ data[TEMP_VAR] +" == false) jmp " + use_label() + "\n"
+                write_buffered(out, data[WRITE_ON_BUFFER])
+        
+
                 if data[TYPE] != "boolean":
                    print(fg.red, "Expression should return boolean type at line: {}".format(getLine(count)), fg.rs, sep = '')
 
@@ -1343,16 +1388,23 @@ def ifElseSt(count, data):
                         label_no+=1
                         temp = use_label()
                         data[TEMP_LABEL] = temp
-                        ICG_file.write("jmp " + temp + "\n")
+                        
+                        out = "jmp " + temp + "\n"
+                        write_buffered(out, data[WRITE_ON_BUFFER])
+        
                         label_no-=1
-                        ICG_file.write(create_label() + "\n")
+                        
+                        out = create_label() + "\n"
+                        write_buffered(out, data[WRITE_ON_BUFFER])
+        
                         label_no+=1
                         scopeStack.deleteScope()
                         if elif_(count, data):
                             
                             if else_(count, data):
 
-                                ICG_file.write(temp + ":" + "\n")
+                                out = temp + ":" + "\n"
+                                write_buffered(out, data[WRITE_ON_BUFFER])
 
                                 return True
 
@@ -1372,7 +1424,8 @@ def elif_(count, data):
             
             if condition(count, data):
 
-                ICG_file.write("if(" + data[TEMP_VAR] + " == false) jmp " + use_label() + "\n")
+                out = "if(" + data[TEMP_VAR] + " == false) jmp " + use_label() + "\n"
+                write_buffered(out, data[WRITE_ON_BUFFER])
 
                 if data[TYPE] != "boolean":
                    print(fg.red, "Expression should return boolean type at line: {}".format(getLine(count)), fg.rs, sep = '')
@@ -1381,8 +1434,14 @@ def elif_(count, data):
                     count+=1
                     if body(count, data):
                         global label_no
-                        ICG_file.write("jmp " + data[TEMP_LABEL] + "\n")
-                        ICG_file.write(create_label() + "\n")
+                        
+                        out = "jmp " + data[TEMP_LABEL] + "\n"
+                        write_buffered(out, data[WRITE_ON_BUFFER])
+                        
+                        out = create_label() + "\n"
+                        write_buffered(out, data[WRITE_ON_BUFFER])
+        
+
                         label_no+=1
                         scopeStack.deleteScope()
                         if elif_(count, data):
@@ -1438,7 +1497,8 @@ def whileSt(count, data):
     if tokenSet[count.value][lexi.CLASS_PART] == "WHILE":
 
         global label_no
-        ICG_file.write(create_label() + "\n")
+        out = create_label() + "\n"
+        write_buffered(out, data[WRITE_ON_BUFFER])
         label_no+=1
 
         count+=1
@@ -1447,7 +1507,8 @@ def whileSt(count, data):
             count+=1
             
             if condition(count, data):
-                ICG_file.write("if("+ data[TEMP_VAR] +" == false) jmp " + use_label() + "\n")
+                out = "if("+ data[TEMP_VAR] +" == false) jmp " + use_label() + "\n"
+                write_buffered(out, data[WRITE_ON_BUFFER])
                 
                 if data[TYPE] != "boolean":
                    print(fg.red, "Expression should return boolean type at line: {}".format(getLine(count)), fg.rs, sep = '')
@@ -1456,9 +1517,11 @@ def whileSt(count, data):
                     count+=1
                     if body(count, data):
                         label_no-=1
-                        ICG_file.write("jmp " + use_label() + "\n")
+                        out = "jmp " + use_label() + "\n"
+                        write_buffered(out, data[WRITE_ON_BUFFER])
                         label_no+=1
-                        ICG_file.write(create_label() + "\n")
+                        out = create_label() + "\n\n"
+                        write_buffered(out, data[WRITE_ON_BUFFER])
                         label_no+=1
                         scopeStack.deleteScope()
                         return True
@@ -1473,14 +1536,25 @@ def forSt(count, data):
         if tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_OPEN":
             count+=1
             if forRule(count, data):
+                global buffer
+                local_buffer = buffer
+                buffer = ""
                 if tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_CLOSE":
                     count+=1
                     if body(count, data):
                         global label_no
+
+                        out = local_buffer
+                        write_buffered(out, data[WRITE_ON_BUFFER])
+
                         label_no-=1
-                        ICG_file.write("jmp " + use_label() + "\n")
+                        out = "jmp " + use_label() + "\n"
+                        write_buffered(out, data[WRITE_ON_BUFFER])
+
                         label_no+=1
-                        ICG_file.write(create_label() + "\n")
+                        out = create_label() + "\n\n"
+                        write_buffered(out, data[WRITE_ON_BUFFER])
+
                         label_no+=1
                         scopeStack.deleteScope()
                         return True
@@ -1488,12 +1562,16 @@ def forSt(count, data):
 
 def forRule(count, data):
     if forDec(count, data):
-        ICG_file.write(create_label() + "\n")
+        out = create_label() + "\n"
+        write_buffered(out, data[WRITE_ON_BUFFER])
         global label_no
         label_no+=1
         if forCondition(count, data):
-            ICG_file.write("if("+ data[TEMP_VAR] +" == false) jmp " + use_label() + "\n")
+            out = "if("+ data[TEMP_VAR] +" == false) jmp " + use_label() + "\n"
+            write_buffered(out, data[WRITE_ON_BUFFER])
+            data[WRITE_ON_BUFFER] = True
             if forIncDec(count, data):
+                data[WRITE_ON_BUFFER] = False
                 return True
     return False
 
@@ -1531,12 +1609,11 @@ def forCondition(count, data):
 ###############CHECK FOLLOW SET
 def forIncDec(count, data):
     if getCP(count) == lexi.IDENTIFIER:
-        if tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
-            count+=1
-            if argumentOrNull(count, data):
-                if objFunctionArrayInvocationRecursive(count, data):
-                    if asOpOrCompound(count, data):
-                        return True
+        count+=1
+        if argumentOrNull(count, data):
+            if objFunctionArrayInvocationRecursive(count, data):
+                if asOpOrCompound(count, data):
+                    return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_CLOSE":
         return True
     return False
@@ -1561,13 +1638,16 @@ def asOpOrCompound(count, data):
     if getCP(count) == lexi.AS_OP:
         count += 1
         if asStLf(count, data):
-            ICG_file.write(temp_var() + " = " + data[TEMP_VAR] + "\n")
+            out = temp_var() + " = " + data[TEMP_VAR] + "\n"
+            write_buffered(out, data[WRITE_ON_BUFFER])
             inc_temp()
             return True
     elif getCP(count) == lexi.COMPOUND_AS_OP:
+        O = getVP(count)[0]
         count += 1
         if asStLf(count, data):
-            ICG_file.write(temp_var() + " = " + temp_var() + " " + getVP(count)[0] + data[TEMP_VAR] + "\n")
+            out = temp_var() + " = " + temp_var() + " " + O + " " + data[TEMP_VAR] + "\n"
+            write_buffered(out, data[WRITE_ON_BUFFER])
             inc_temp()
             return True
     elif getCP(count) == lexi.END_OF_STATEMENT:
@@ -1729,9 +1809,9 @@ def sstAllFunctions(count, data):
                 count+=1
                 return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
-        data[DATA_TYPE] = data[NAME]
-        T = lookUpDT(data[DATA_TYPE])
-        if T== None:
+        data[NAME], data[DATA_TYPE] = getVP(count), data[NAME]
+        
+        if lookUpDT(data[DATA_TYPE])== None:
            print(fg.red, "Unknown identifier found at line : {}".format(getLine(count)), fg.rs, sep = '')
         
         N = getVP(count)
