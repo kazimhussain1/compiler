@@ -243,9 +243,11 @@ def lookUpCDTfromDT(N, T, class_name):
                         None
             
             parent = item.parent.split(",")[0]
-            class_ent = lookUpDT(parent)
-            if class_ent.type_ == lexi.CLASS:
-                return lookUpCDT(N,T, class_ent.CDT, class_ent)
+            if parent != "":
+                class_ent = lookUpDT(parent)
+                if class_ent != None:
+                    if class_ent.type_ == lexi.CLASS:
+                        return lookUpCDT(N,T, class_ent.CDT, class_ent)
 
     return None
 
@@ -460,11 +462,15 @@ def classSt(count, data):
                 data[CLASS_NAME] = CN
                 if classBody(count, data):
                     if not lookUpCDT(CN,"",data[CLASS_DATA_TABLE], None):
+                        ICG_file.write(data[CLASS_NAME] + "_" + data[CLASS_NAME] + "_" + " Proc" "\n")
+                        ICG_file.write("EndP\n\n\n")
+
                         insertCDT(CN,ARROW+CN,"public", None,data[CLASS_DATA_TABLE])
+
                     return True
     return False
 
-#CHANGED
+
 def classBody(count, data):
     if tokenSet[count.value][lexi.CLASS_PART] == "CURLY_BRACKET_OPEN":
         count+=1
@@ -531,9 +537,19 @@ def classBodyStLf(count, data):
 def classBodyStLfOne(count, data):
     if getCP(count) == lexi.ROUND_BRACKET_OPEN:
         if paramBody(count, data):
+            tempParams = data[PARAMETER_LIST].replace(ARROW,"").replace(",", "_")
+            if tempParams == "":
+                paramCount = 0
+            else:
+                paramCount = len(tempParams.split("_"))
+            ICG_file.write(data[CLASS_NAME] + "_" + data[NAME] + "_" + tempParams + " Proc" "\n")
+            for i in range(paramCount):
+                ICG_file.write(temp_var() + " " + "= Pop()\n"  )
+                inc_temp()
             if not insertCDT(data[NAME], data[PARAMETER_LIST]+ARROW+data[DATA_TYPE], data[ACCESS_MODIFIER], data[TYPE_MODIFIER], data[CLASS_DATA_TABLE]):
                print(fg.red, "Function Redeclaration Error at line: {}".format(getLine(count)), fg.rs, sep = '')
             if body(count, data):
+                ICG_file.write("EndP\n\n\n")
                 scopeStack.deleteScope()
                 if classBodySt(count, data):
                     return True
@@ -551,9 +567,19 @@ def classBodyStLfOne(count, data):
 def classBodyStLfTwo(count, data):
     if getCP(count) == lexi.ROUND_BRACKET_OPEN:
         if paramBody(count, data):
+            tempParams = data[PARAMETER_LIST].replace(ARROW,"").replace(",", "_")
+            if tempParams == "":
+                paramCount = 0
+            else:
+                paramCount = len(tempParams.split("_"))
+            ICG_file.write(data[CLASS_NAME] + "_" + data[NAME] + "_" + tempParams + " Proc" "\n")
+            for i in range(paramCount):
+                ICG_file.write(temp_var() + " " + "= Pop()\n"  )
+                inc_temp()
             if not insertCDT(data[NAME], data[PARAMETER_LIST]+ARROW+data[DATA_TYPE], data[ACCESS_MODIFIER], data[TYPE_MODIFIER],data[CLASS_DATA_TABLE]):
                 print(fg.red, "Function Redeclaration Error at line: {}".format(getLine(count)), fg.rs, sep = '')
             if body(count, data):
+                ICG_file.write("EndP\n\n\n")
                 scopeStack.deleteScope()
                 if classBodySt(count, data):
                     return True
@@ -565,7 +591,6 @@ def classBodyStLfTwo(count, data):
                     count+=1  
                     if classBodySt(count, data):
                         return True
-
     return False
 
 #changed
@@ -894,8 +919,9 @@ def insideArgumentBody(count, data):
     if getCP(count) == lexi.ROUND_BRACKET_OPEN or getCP(count) == lexi.UNI_BOOLEAN_OP or getCP(count) == lexi.IDENTIFIER or getCP(count) == lexi.INTEGER_CONST or getCP(count) == lexi.STRING_CONST or getCP(count) == lexi.FLOAT_CONST or getCP(count) == lexi.BOOLEAN_CONSTANTS:
         
         if condition(count, data):
+            pVars = [data[TEMP_VAR]]
             data[PARAMETER_LIST] = data[TYPE]
-            if argumentBodyRecursive(count, data):
+            if argumentBodyRecursive(count, data, pVars):
                 return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_CLOSE":
         return True
@@ -907,14 +933,17 @@ def insideArgumentBody(count, data):
 
 
 
-def argumentBodyRecursive(count, data):
+def argumentBodyRecursive(count, data, pVars):
     if tokenSet[count.value][lexi.CLASS_PART] ==  lexi.SEPARATOR_OP:
         count+=1
         if condition(count, data):
+            pVars.insert(0, data[TEMP_VAR])
             data[PARAMETER_LIST] += "," + data[TYPE]
-            if argumentBodyRecursive(count, data):
+            if argumentBodyRecursive(count, data, pVars):
                 return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_CLOSE":
+        for i in pVars:
+            ICG_file.write("Push(" + i + ")\n")
         return True
     return False
 
@@ -1147,6 +1176,16 @@ def constructorSt(count, data):
             count+=1
 
             if paramBody(count, data):
+                tempParams = data[PARAMETER_LIST].replace(ARROW,"").replace(",", "_")
+                if tempParams == "":
+                    paramCount = 0
+                else:
+                    paramCount = len(tempParams.split("_"))
+                ICG_file.write(data[CLASS_NAME] + "_" + data[CLASS_NAME] + "_" + tempParams + " Proc" "\n")
+                for i in range(paramCount):
+                    ICG_file.write(temp_var() + " " + "= Pop()\n"  )
+                    inc_temp()
+                
                 if not insertCDT(N, data[PARAMETER_LIST]+ARROW+data[CLASS_NAME],data[ACCESS_MODIFIER], lexi.CONSTRUCTOR, data[CLASS_DATA_TABLE]):
                    print(fg.red, "Contructor Redeclaration Error at line: {}".format(getLine(count)), fg.rs, sep = '')
                 if tokenSet[count.value][lexi.CLASS_PART] == "CURLY_BRACKET_OPEN":
@@ -1266,6 +1305,8 @@ def argumentOrNull(count, data, lookUpFromDT = False):
         DT = data[DATA_TYPE]
         if argumentBody(count, data):
             data[DATA_TYPE] = DT
+            tempParams = data[PARAMETER_LIST].replace(ARROW,"").replace(",", "_")
+            ICG_file.write("Call " + data[CLASS_NAME] + "_" + data[NAME] + "_" + tempParams + "\n")
             if lookUpFromDT:
                 returnType = lookUpCDTfromDT(N, data[PARAMETER_LIST], data[DATA_TYPE])
             else:

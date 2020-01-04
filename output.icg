@@ -1,36 +1,59 @@
-t0 = 5
+A_drive_ Proc
+t0 = 0
 t1 = t0
-t1 = 4
-t2 = 3
-t3 = t1 < t2
-if(t3 == false) jmp L0
-t4 = 3
-t5 = 4
-t6 = t4 > t5
-if(t6 == false) jmp L0
-t7 = 5
-t8 = t7
-jmp L1
 L0:
-t9 = 2
-t10 = 4
-t11 = t9 == t10
-if(t11 == false) jmp L1
-t12 = 4
-t13 = t12
-jmp L1
+t2 = 10
+t3 = t0 < t2
+if(t3 == false) jmp L1
+t4 = 1
+t5 = t5 + t4
+jmp L0
 L1:
-t14 = 3
-t15 = t14
-L1:
-jmp L3
+
+EndP
+
+
+t6 = 0
+t7 = t6
+A_A_ Proc
+EndP
+
+
+B_B_ Proc
+EndP
+
+
+Call C_B_
+C_blue_int_int_float Proc
+t7 = Pop()
+t8 = Pop()
+t9 = Pop()
+EndP
+
+
+C_C_ Proc
+EndP
+
+
+Main_Main_ Proc
+Call Main_C_
+t10 = 5
+t11 = 6
+t12 = 7.2
+Push(t12)
+Push(t11)
+Push(t10)
+Call Main_blue_int_int_float
+Call Main_drive_
 L2:
+t13 = 10
+Call Main_drive_
+t14 = t13 > t13
+if(t14 == false) jmp L3
+jmp L2
 L3:
-L3:
-t16 = t14 < t14
-if(t16 == false) jmp L4
-t17 = 5
-t18 = t17
-jmp L3
-L4:
+
+Main_Main_ Proc
+EndP
+
 
