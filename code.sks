@@ -4,30 +4,35 @@ class A(){
 
         int d = 5;
 
-        if
+        if (4<3){
+            
+            if (3>4){
 
+                d=5;
+            } elif(2 == 4){
 
-        while((5<9) AND (7>1)){
+                d=4;
+            } else {
 
-            d=5;
+                d=3;
+            }
         }
 
-        for (int i =22; 22 < 15; i+=1){
 
-            a=55;
+        while(a<b){
+            
+            a=5;
         }
 
-        
     }
 
-
-    public float i = 0.0;
 }
-
-class B(){
+##
+class B(A){
     public A a;
 
-    public A drive(){
+
+        public A drive(){
         
         int i,j;
         
@@ -35,6 +40,8 @@ class B(){
 
         }
     }
+
+    
 }
 
 class C(B){
@@ -56,14 +63,14 @@ class Main(){
 
         }
 
-##
+
         int d;
         int e;
         A a = A(c,e);
 
         int a;
         c.C(a);
-##
+
         
      
     }
@@ -72,7 +79,7 @@ class Main(){
     
 }
 
-
+##
 
 
 

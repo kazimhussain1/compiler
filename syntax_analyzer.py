@@ -191,7 +191,7 @@ def insertDT(N, T, parent):
     
     return False
 
-def lookUpCDT(N, T, CDT, class_name):
+def lookUpCDT(N, T, CDT, class_ent):
     for item in CDT:
         if item.name == N:
 
@@ -210,9 +210,13 @@ def lookUpCDT(N, T, CDT, class_name):
             else:
                 return None
 
-    for item in defTable:
-        if item.name == class_name:
-            parents = item.parent.split(",")[0]
+    if class_ent != None:
+        parent = class_ent.parent.split(",")[0]
+        if parent != "":
+            parent_class = lookUpDT(parent)
+            if parent_class != None:
+                if parent_class.type_ == lexi.CLASS:
+                    return lookUpCDT(N,T, parent_class.CDT, parent_class)
 
     return None
 
@@ -455,7 +459,7 @@ def classSt(count, data):
                 data[CLASS_DATA_TABLE] = class_ent.CDT
                 data[CLASS_NAME] = CN
                 if classBody(count, data):
-                    if not lookUpCDT(CN,"",data[CLASS_DATA_TABLE], class_ent):
+                    if not lookUpCDT(CN,"",data[CLASS_DATA_TABLE], None):
                         insertCDT(CN,ARROW+CN,"public", None,data[CLASS_DATA_TABLE])
                     return True
     return False
@@ -1446,7 +1450,7 @@ def elif_(count, data):
                         scopeStack.deleteScope()
                         if elif_(count, data):
                             return True
-    elif getCP(count) == lexi.ELSE or getCP(count) == lexi.DATA_TYPE or getCP(count) == lexi.WHILE or getCP(count) == lexi.IF or getCP(count) == lexi.FOR or getCP(count) == lexi.FOREACH or getCP(count) == lexi.RETURN or getCP(count) == lexi.IDENTIFIER:
+    elif getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ELSE or getCP(count) == lexi.DATA_TYPE or getCP(count) == lexi.WHILE or getCP(count) == lexi.IF or getCP(count) == lexi.FOR or getCP(count) == lexi.FOREACH or getCP(count) == lexi.RETURN or getCP(count) == lexi.IDENTIFIER:
         return True
     return False
 
@@ -1462,7 +1466,7 @@ def else_(count, data):
         if body(count, data):
             scopeStack.deleteScope()
             return True
-    elif getCP(count) == lexi.DATA_TYPE or getCP(count) == lexi.WHILE or getCP(count) == lexi.IF or getCP(count) == lexi.FOR or getCP(count) == lexi.FOREACH or getCP(count) == lexi.RETURN or getCP(count) == lexi.IDENTIFIER:
+    elif getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.DATA_TYPE or getCP(count) == lexi.WHILE or getCP(count) == lexi.IF or getCP(count) == lexi.FOR or getCP(count) == lexi.FOREACH or getCP(count) == lexi.RETURN or getCP(count) == lexi.IDENTIFIER:
         return True
     return False
 
