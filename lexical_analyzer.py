@@ -44,7 +44,7 @@ keywords_dict = {
     RELATIONAL_OP : ["<", ">", "<=", ">=", "!=", "=="],
     BOOLEAN_AND : ["AND", "and"],
     BOOLEAN_OR : ["OR", "or"],
-    UNI_BOOLEAN_OP : ["NOT"],
+    UNI_BOOLEAN_OP : ["NOT", "not"],
 }
 
 keywords_list = [item for subList in keywords_dict.values() for item in subList]

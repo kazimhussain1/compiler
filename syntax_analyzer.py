@@ -234,11 +234,11 @@ def lookUpCDTfromDT(N, T, class_name):
                         pListAndRTypeOld = thing.type_.split(ARROW)
                         pListAndRTypeNew = T.split(ARROW)
                         if pListAndRTypeOld[0] == pListAndRTypeNew[0]:
-                            return {R_Type:thing.type_.split(ARROW)[1], ACCESS_MODIFIER:thing.AM, TYPE_MODIFIER:thing.TM}
+                            return {R_Type:thing.type_.split(ARROW)[1], ACCESS_MODIFIER:thing.AM, TYPE_MODIFIER:thing.TM, CLASS_NAME:item.name}
                         else:
                             return None
                     elif not isOldFunc and not isNewFunc:
-                        return {R_Type:thing.type_, ACCESS_MODIFIER:thing.AM, TYPE_MODIFIER:thing.TM}
+                        return {R_Type:thing.type_, ACCESS_MODIFIER:thing.AM, TYPE_MODIFIER:thing.TM, CLASS_NAME:item.name}
                     else:
                         None
             
@@ -786,7 +786,7 @@ def init(count, data):
         count+=1
         if decOpt(count, data):
             write_buffered(temp_var() + " = " + data[TEMP_VAR] + "\n", data[WRITE_ON_BUFFER])
-            
+            inc_temp()
             T = checkCompat(data[DATA_TYPE], data[TYPE], O)
             if data[DATA_TYPE] != T:
                 print(fg.red, "Cannot assign '{}' to variable of type '{}' at Line: {}".format(data[TYPE], data[DATA_TYPE], getLine(count)), fg.rs, sep = '')
@@ -809,42 +809,29 @@ def decOpt(count, data):
 
 def const(count, data, isRightOperand=False):
     if tokenSet[count.value][lexi.CLASS_PART] == lexi.INTEGER_CONST: 
-        out = temp_var() + " = " + getVP(count) + "\n"
-        write_buffered(out, data[WRITE_ON_BUFFER])
+        data[TEMP_VAR] = getVP(count)
 
-        data[TEMP_VAR] = temp_var()
-        inc_temp()
         data[TYPE] = "int"
-
         count+=1
         return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "STRING_CONST":
     
-        out = temp_var() + " = " + getVP(count) + "\n"
-        write_buffered(out, data[WRITE_ON_BUFFER])
+        data[TEMP_VAR] = getVP(count)
 
-        data[TEMP_VAR] = temp_var()
-        inc_temp()
         data[TYPE] = "text"
         count+=1
         return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "FLOAT_CONST":
         
-        out = temp_var() + " = " + getVP(count) + "\n"
-        write_buffered(out, data[WRITE_ON_BUFFER])
-        
-        data[TEMP_VAR] = temp_var()
-        inc_temp()
+        data[TEMP_VAR] = getVP(count)
+
         data[TYPE] = "float"
         count+=1
         return True
     elif tokenSet[count.value][lexi.CLASS_PART] == lexi.BOOLEAN_CONSTANTS:
         
-        out = temp_var() + " = " + getVP(count) + "\n"
-        write_buffered(out, data[WRITE_ON_BUFFER])
-        
-        data[TEMP_VAR] = temp_var()
-        inc_temp()
+        data[TEMP_VAR] = getVP(count)
+
         data[TYPE] = "boolean"
         count+=1
         return True 
@@ -1107,11 +1094,11 @@ def f(count, data, isRightOperand=False):
             if tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_CLOSE":
                 count+=1
                 return True
-    elif tokenSet[count.value][lexi.CLASS_PART] == "NOT":
+    elif tokenSet[count.value][lexi.CLASS_PART] == lexi.UNI_BOOLEAN_OP:
         count+=1
         if f(count, data, isRightOperand):
             
-            out = temp_var() + " = " + data[TEMP_VAR] + "\n"
+            out = temp_var() + " = NOT " + data[TEMP_VAR] + "\n"
             write_buffered(out, data[WRITE_ON_BUFFER])
         
             data[TEMP_VAR] = temp_var()
@@ -1121,9 +1108,11 @@ def f(count, data, isRightOperand=False):
         if const(count, data, isRightOperand):
             return True
     elif tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
-        data[NAME] = getVP(count)
+        N = getVP(count)
+        data[NAME] = N
+        data[TEMP_VAR] = N
         data[TYPE] = None
-        count+=1
+        count+=1 
         if f_Lf(count, data, isRightOperand):
             return True
     return False
@@ -1305,18 +1294,28 @@ def argumentOrNull(count, data, lookUpFromDT = False):
         DT = data[DATA_TYPE]
         if argumentBody(count, data):
             data[DATA_TYPE] = DT
-            tempParams = data[PARAMETER_LIST].replace(ARROW,"").replace(",", "_")
-            ICG_file.write("Call " + data[CLASS_NAME] + "_" + data[NAME] + "_" + tempParams + "\n")
+            
+            inc_temp()
             if lookUpFromDT:
                 returnType = lookUpCDTfromDT(N, data[PARAMETER_LIST], data[DATA_TYPE])
             else:
                 returnType = lookUpCDT(N, data[PARAMETER_LIST], data[CLASS_DATA_TABLE], data[CLASS_ENT])
+                if returnType != None:
+                    tempParams = data[PARAMETER_LIST].replace(ARROW,"").replace(",", "_")
+                    ICG_file.write(temp_var() + "  = Call " + DT + "_" + data[NAME] + "_" + tempParams + "\n")
+                    data[TEMP_VAR] = temp_var() 
+
             if returnType:
                 data[TYPE] = returnType[R_Type]
                 data[DATA_TYPE] = returnType[R_Type]
             else:
                 returnType = lookUpCDTfromDT(N, data[PARAMETER_LIST], N)
                 if returnType:
+
+                    tempParams = data[PARAMETER_LIST].replace(ARROW,"").replace(",", "_")
+                    ICG_file.write(temp_var() + "  = Call " + data[NAME] + "_" + data[NAME] + "_" + tempParams + "\n")
+                    data[TEMP_VAR] = temp_var()
+
                     data[TYPE] = returnType[R_Type]
                     data[DATA_TYPE] = returnType[R_Type]
                 else:
@@ -1369,8 +1368,9 @@ def objFunctionArrayInvocationRecursive(count, data):
            print(fg.red, "primitive data type cannot use '.' operator at line: {}".format(getLine(count)), fg.rs, sep = '')
         count+=1
         if tokenSet[count.value][lexi.CLASS_PART] == "IDENTIFIER":
-            data[NAME] = getVP(count)
-
+            N = getVP(count)
+            data[NAME] = N
+            data[TEMP_VAR] += "." + N
             count+=1
             if  argumentOrNull(count, data, lookUpFromDT = True):
                 if objFunctionArrayInvocationRecursive(count, data):
@@ -1411,6 +1411,8 @@ def arrayCall2d(count, data):
 
 
 def ifElseSt(count, data):
+    global label_no
+
     if tokenSet[count.value][lexi.CLASS_PART] == "IF":
         count+=1
         scopeStack.createScope()
@@ -1418,8 +1420,9 @@ def ifElseSt(count, data):
             count+=1
             
             if condition(count, data):
-                
-                out = "if("+ data[TEMP_VAR] +" == false) jmp " + use_label() + "\n"
+                lbl = use_label()
+                label_no+=1
+                out = "if("+ data[TEMP_VAR] +" == false) jmp " + lbl + "\n"
                 write_buffered(out, data[WRITE_ON_BUFFER])
         
 
@@ -1429,22 +1432,19 @@ def ifElseSt(count, data):
                 if tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_CLOSE":
                     count+=1
                     if body(count, data):
-                        global label_no
-                        label_no+=1
+                    
                         temp = use_label()
-                        data[TEMP_LABEL] = temp
-                        
+                        label_no+=1
+
                         out = "jmp " + temp + "\n"
                         write_buffered(out, data[WRITE_ON_BUFFER])
-        
-                        label_no-=1
                         
-                        out = create_label() + "\n"
+                        out = lbl + ":\n"
                         write_buffered(out, data[WRITE_ON_BUFFER])
         
-                        label_no+=1
+                        
                         scopeStack.deleteScope()
-                        if elif_(count, data):
+                        if elif_(count, data, temp):
                             
                             if else_(count, data):
 
@@ -1459,7 +1459,8 @@ def ifElseSt(count, data):
 
 
 
-def elif_(count, data):
+def elif_(count, data, temp_label):
+    global label_no
     if tokenSet[count.value][lexi.CLASS_PART] == "ELIF":
         count+=1
 
@@ -1469,7 +1470,9 @@ def elif_(count, data):
             
             if condition(count, data):
 
-                out = "if(" + data[TEMP_VAR] + " == false) jmp " + use_label() + "\n"
+                lbl = use_label()
+                label_no+=1
+                out = "if(" + data[TEMP_VAR] + " == false) jmp " + lbl + "\n"
                 write_buffered(out, data[WRITE_ON_BUFFER])
 
                 if data[TYPE] != "boolean":
@@ -1478,18 +1481,18 @@ def elif_(count, data):
                 if tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_CLOSE":
                     count+=1
                     if body(count, data):
-                        global label_no
                         
-                        out = "jmp " + data[TEMP_LABEL] + "\n"
+                        
+                        out = "jmp " + temp_label + "\n"
                         write_buffered(out, data[WRITE_ON_BUFFER])
                         
-                        out = create_label() + "\n"
+                        out = lbl + ":\n"
                         write_buffered(out, data[WRITE_ON_BUFFER])
         
 
-                        label_no+=1
+                        
                         scopeStack.deleteScope()
-                        if elif_(count, data):
+                        if elif_(count, data, temp_label):
                             return True
     elif getCP(count) == lexi.CURLY_BRACKET_CLOSE or getCP(count) == lexi.ELSE or getCP(count) == lexi.DATA_TYPE or getCP(count) == lexi.WHILE or getCP(count) == lexi.IF or getCP(count) == lexi.FOR or getCP(count) == lexi.FOREACH or getCP(count) == lexi.RETURN or getCP(count) == lexi.IDENTIFIER:
         return True
@@ -1539,10 +1542,11 @@ def forEachSt(count, data):
 
 
 def whileSt(count, data):
+    global label_no
     if tokenSet[count.value][lexi.CLASS_PART] == "WHILE":
 
-        global label_no
-        out = create_label() + "\n"
+        lbl_cond = use_label()
+        out = lbl_cond + ":\n"
         write_buffered(out, data[WRITE_ON_BUFFER])
         label_no+=1
 
@@ -1552,7 +1556,9 @@ def whileSt(count, data):
             count+=1
             
             if condition(count, data):
-                out = "if("+ data[TEMP_VAR] +" == false) jmp " + use_label() + "\n"
+                lbl_false = use_label()
+                label_no+=1
+                out = "if("+ data[TEMP_VAR] +" == false) jmp " + lbl_false + "\n"
                 write_buffered(out, data[WRITE_ON_BUFFER])
                 
                 if data[TYPE] != "boolean":
@@ -1561,13 +1567,13 @@ def whileSt(count, data):
                 if tokenSet[count.value][lexi.CLASS_PART] == "ROUND_BRACKET_CLOSE":
                     count+=1
                     if body(count, data):
-                        label_no-=1
-                        out = "jmp " + use_label() + "\n"
+
+                        out = "jmp " + lbl_cond + "\n"
                         write_buffered(out, data[WRITE_ON_BUFFER])
-                        label_no+=1
-                        out = create_label() + "\n\n"
+                        
+                        out = lbl_false + ":\n\n"
                         write_buffered(out, data[WRITE_ON_BUFFER])
-                        label_no+=1
+                        
                         scopeStack.deleteScope()
                         return True
     return False
