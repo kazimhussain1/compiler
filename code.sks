@@ -1,11 +1,19 @@
 class A(){
+    public int s;
 
     public constructor A(int a, int b){
 
-        int d = 5;
+        text d = 5;
 
         while(NOT ((a+5) < 6)){
-
+            if (d==5)
+            {
+                int d;
+                while(a+8< 3)
+                {
+                    d=s*a-7;
+                }
+            }
 
         }
 
@@ -24,7 +32,7 @@ class A(){
         }
 
 
-        while(a<3){
+        for(int i = 0;i<5;i+=1){
             
             a=5;
         }
@@ -51,16 +59,18 @@ class A(){
 
 class B(A){
     public A a;
-
+    public A fn(){}
     
 }
 
 class C(B){
     public B b = B();
 
-    public float blue(int a, int b, float f)
+    public float blue(int a, int x, float f)
     {
-
+#b.a.s=b.a.drive();
+ B b = B();
+b=6;
     }
 }
 
@@ -71,19 +81,12 @@ class Main(){
         C c = C();
         c.blue(5,6,7.2);
         c.drive();
-
+        int a =c.b.fn().s*34-4/2;
 
         while(10 > c.b.a.drive()){
 
         }
 
-
-        # int d;
-        # int e;
-        # A a = A(c,e);
-
-        # int a;
-        # c.C(a);
 
         
      
@@ -96,104 +99,3 @@ class Main(){
 
 
 
-
-
-
-
-
-##
-class Car(){
-
-    public constructor Car(){
-
-        int a;
-
-
-        int i,j;
-        j += 1;
-
-    
-        int a,b;
-        while(a<b){
-
-        }
-        
-    }
-
-    public int drive(){
-        
-        int i,j;
-        
-        for(i=0; j<10;i+=1){
-
-        }
-    }
-
-
-    public int handle()
-    {
-        int a;
-    }
-
-
-}
-
-class Main(Car){
-
-    private Car func(){
-
-        int b;
-        Car a = Car();
-        b = "text" + a.drive();
-
-        send a;
-    }
-    
-
-
-    public int myMethod(){
-
-    }
-
-    public int myMethod(MyClass a){
-
-        for(i=0;i<5;i+=1){
-
-            a(a);
-        }
-
-        foreach YOLO i in list{
-
-        }
-
-
-        while(a-b *3){
-
-        }
-
-        if(a[3][4]){ 
-
-        }
-        if (a and b != c.c()){
-
-        } 
-        else{
-
-        }
-        int b = 9;
-        boolean a = true;
-
-    }
-        public float a = 0.5;
-
-
-    public static int a = 5;
-
-    
-    
-    public static int a = 5;
-
-    
-}
-
-##
